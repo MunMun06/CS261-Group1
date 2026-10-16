@@ -1,0 +1,118 @@
+:root {
+    color-scheme: light;
+    --font-family: "Prompt", system-ui, sans-serif;
+    --accent: #ea580c;
+    --accent-strong: #c2410c;
+    --accent-soft: #fff7ed;
+    --ink: #0f172a;
+    --ink-heading: #1b2130;
+    --text: #334155;
+    --text-muted: #64748b;
+    --text-subtle: #4a5060;
+    --icon-muted: #94a3b8;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+    --surface: #ffffff;
+    --surface-muted: #f8fafc;
+    --page-background: #f8fafc;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--page-background);
+    color: var(--ink);
+    font-family: var(--font-family);
+}
+
+a {
+    color: var(--text);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--accent-strong);
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Header */
+
+.site-header {
+    border-bottom: 1px solid #e7e9ee;
+    background: var(--surface);
+}
+
+.site-header-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 32px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-mark {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--ink-heading);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+    color: #f97316;
+}
+
+.brand-name {
+    color: var(--accent-strong);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-link {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.nav-link.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .site-header-inner {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+}

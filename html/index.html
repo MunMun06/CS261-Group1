@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TU Basket Booking</title>
     <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/script.js" defer></script>
 </head>
 
 <body>
@@ -45,7 +46,23 @@
                 </button>
             </nav>
         </aside>
-        <main class="main-content"></main>
+        <main class="main-content">
+            <section class="date-picker" aria-labelledby="date-heading">
+                <h1 id="date-heading">เลือกวันที่</h1>
+                <div id="date-list" class="date-list" role="group" aria-label="เลือกวันที่"></div>
+            </section>
+            <section class="booking-rules" aria-labelledby="booking-rules-heading">
+                <div class="booking-rules-title">
+                    <span class="booking-rules-icon" aria-hidden="true">i</span>
+                    <h2 id="booking-rules-heading">กฎการจองสนาม</h2>
+                </div>
+                <ul>
+                    <li>จองล่วงหน้าได้สูงสุด 7 วัน</li>
+                    <li>จำกัด 2 ชม./วัน</li>
+                    <li>ยกเลิกก่อน 1 ชม.</li>
+                </ul>
+            </section>
+        </main>
     </div>
 </body>
 

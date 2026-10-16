@@ -58,12 +58,61 @@
                 </div>
                 <ul>
                     <li>จองล่วงหน้าได้สูงสุด 7 วัน</li>
-                    <li>จำกัด 2 ชม./วัน</li>
-                    <li>ยกเลิกก่อน 1 ชม.</li>
+                    <li>จำกัดสูงสุดคนละ 2 ชม./วัน</li>
+                    <li>ยกเลิกล่วงหน้าอย่างน้อย 1 ชม. ก่อนเวลา</li>
+                    <li>เฉพาะนักศึกษา และบุคลากรคณะวิทย์เท่านั้น</li>
                 </ul>
+            </section>
+            <section class="court-section" aria-labelledby="court-heading">
+                <h2 id="court-heading">เลือกสนาม</h2>
+                <div class="court-grid">
+                    <article class="court-card">
+                        <img class="court-image"
+                            src="https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=900&q=85"
+                            alt="สนามบาสเกตบอลในร่ม" loading="lazy">
+                        <div class="court-details">
+                            <div class="court-title-row">
+                                <h3>สนามบาสเกตบอล สนามที่ 1</h3>
+                                <span class="court-status">ว่าง</span>
+                            </div>
+                            <p>คณะวิทยาศาสตร์ฯ</p>
+                            <button class="btn-select-court" type="button" data-court="court-1">
+                                เลือกเวลา &gt;
+                            </button>
+                        </div>
+                    </article>
+                    <article class="court-card">
+                        <img class="court-image"
+                            src="https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&w=900&q=85"
+                            alt="สนามบาสเกตบอล" loading="lazy">
+                        <div class="court-details">
+                            <div class="court-title-row">
+                                <h3>สนามบาสเกตบอล สนามที่ 2</h3>
+                                <span class="court-status">ว่าง</span>
+                            </div>
+                            <p>คณะวิทยาศาสตร์ฯ</p>
+                            <button class="btn-select-court" type="button" data-court="court-2">
+                                เลือกเวลา &gt;
+                            </button>
+                        </div>
+                    </article>
+                </div>
             </section>
         </main>
     </div>
+
+    <dialog class="booking-modal" id="booking-modal" aria-labelledby="modal-court-name">
+        <div class="booking-modal-header">
+            <div>
+                <h2 id="modal-court-name">เลือกช่วงเวลา</h2>
+                <p id="modal-booking-date"></p>
+            </div>
+            <button class="modal-close" id="modal-close" type="button" aria-label="ปิดหน้าต่าง">&times;</button>
+        </div>
+        <div class="time-slots" id="time-slots" role="group" aria-label="เลือกช่วงเวลา"></div>
+        <p class="booking-message" id="booking-message" role="alert" hidden></p>
+        <button class="btn-confirm-booking" id="confirm-booking" type="button">ยืนยันการจอง</button>
+    </dialog>
 </body>
 
 </html>

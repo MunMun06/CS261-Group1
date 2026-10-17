@@ -80,6 +80,38 @@ renderDateList();
 document.querySelector("#user-fullname").textContent = mockUser.fullname;
 document.querySelector("#user-faculty").textContent = mockUser.faculty;
 document.querySelector("#user-email").textContent = mockUser.email;
+document.querySelector("#drawer-fullname").textContent = mockUser.fullname;
+document.querySelector("#drawer-faculty").textContent = mockUser.faculty;
+document.querySelector("#drawer-email").textContent = mockUser.email;
+
+const mobileMenuToggle = document.querySelector("#mobile-menu-toggle");
+const mobileMenuDrawer = document.querySelector("#mobile-menu-drawer");
+const mobileMenuBackdrop = document.querySelector("#mobile-menu-backdrop");
+
+function setMobileMenuOpen(isOpen) {
+    mobileMenuToggle.setAttribute("aria-expanded", String(isOpen));
+    mobileMenuToggle.setAttribute("aria-label", isOpen ? "ปิดเมนู" : "เปิดเมนู");
+    mobileMenuDrawer.setAttribute("aria-hidden", String(!isOpen));
+    mobileMenuDrawer.inert = !isOpen;
+    mobileMenuDrawer.classList.toggle("is-open", isOpen);
+    mobileMenuBackdrop.classList.toggle("is-visible", isOpen);
+    document.body.classList.toggle("mobile-menu-open", isOpen);
+
+    if (isOpen) {
+        document.querySelector("#mobile-menu-close").focus();
+    } else {
+        mobileMenuToggle.focus();
+    }
+}
+
+mobileMenuToggle.addEventListener("click", () => setMobileMenuOpen(true));
+document.querySelector("#mobile-menu-close").addEventListener("click", () => setMobileMenuOpen(false));
+mobileMenuBackdrop.addEventListener("click", () => setMobileMenuOpen(false));
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && mobileMenuDrawer.classList.contains("is-open")) {
+        setMobileMenuOpen(false);
+    }
+});
 
 const bookingModal = document.querySelector("#booking-modal");
 const modalCourtName = document.querySelector("#modal-court-name");

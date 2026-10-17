@@ -119,17 +119,18 @@ function createCard(booking) {
     card.querySelector(".detail-value").textContent = detail.value;
     card.querySelector(".status-badge").replaceWith(createStatusBadge(booking.status));
 
-    const side = card.querySelector(".booking-side");
+    const actions = card.querySelector(".booking-actions");
     if (booking.status === "pending") {
         const qrButton = qrButtonTemplate.content.firstElementChild.cloneNode(true);
         qrButton.addEventListener("click", () => showQrCode(booking));
-        side.append(qrButton);
+        actions.append(qrButton);
     }
     if (canCancel(booking)) {
         const cancelButton = cancelButtonTemplate.content.firstElementChild.cloneNode(true);
         cancelButton.addEventListener("click", () => askToCancel(booking));
-        side.append(cancelButton);
+        actions.append(cancelButton);
     }
+    actions.hidden = actions.childElementCount === 0;
     return card;
 }
 

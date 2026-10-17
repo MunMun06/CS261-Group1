@@ -3,7 +3,8 @@ const bookingFaculty = "คณะวิทยาศาสตร์และเ�
 const mockUser = window.mockUser = {
     fullname: "นายกขค งง",
     faculty: bookingFaculty,
-    email: "member@example.com"
+    email: "member@example.com",
+    userBookingsByDate: {}
 };
 const timeSlots = ["16:00 - 17:00", "17:00 - 18:00", "18:00 - 19:00", "19:00 - 20:00"];
 const mockSlots = window.mockSlots = {
@@ -24,7 +25,7 @@ mockSlots["court-2"][todayKey] = { "19:00 - 20:00": "booked" };
 
 let selectedDate = todayKey;
 let selectedCourt = null;
-let selectedTime = null;
+let selectedTimes = [];
 
 function renderDateList() {
     const dateList = document.querySelector("#date-list");
@@ -92,7 +93,7 @@ function renderTimeSlots() {
     const courtBookings = mockSlots[selectedCourt] ?? {};
     const dayBookings = courtBookings[selectedDate] ?? {};
     timeSlotsContainer.replaceChildren();
-    selectedTime = null;
+    selectedTimes = [];
 
     timeSlots.forEach((time) => {
         const button = document.createElement("button");
@@ -100,13 +101,25 @@ function renderTimeSlots() {
         button.className = "time-slot";
         button.textContent = dayBookings[time] === "booked" ? `${time} · จองแล้ว` : time;
         button.disabled = dayBookings[time] === "booked";
+        button.setAttribute("aria-pressed", "false");
 
         button.addEventListener("click", () => {
-            selectedTime = time;
-            timeSlotsContainer.querySelectorAll(".time-slot").forEach((slotButton) => {
-                slotButton.classList.toggle("is-selected", slotButton === button);
-                slotButton.setAttribute("aria-pressed", String(slotButton === button));
-            });
+            const selectedIndex = selectedTimes.indexOf(time);
+            if (selectedIndex >= 0) {
+                selectedTimes.splice(selectedIndex, 1);
+                button.classList.remove("is-selected");
+                button.setAttribute("aria-pressed", "false");
+            } else {
+                const bookedHours = mockUser.userBookingsByDate[selectedDate] ?? 0;
+                if (bookedHours + selectedTimes.length >= 2) {
+                    showBookingMessage("คุณใช้สิทธิ์จองเต็มโควตา 2 ชั่วโมงต่อวันแล้ว", "error");
+                    return;
+                }
+
+                selectedTimes.push(time);
+                button.classList.add("is-selected");
+                button.setAttribute("aria-pressed", "true");
+            }
             bookingMessage.hidden = true;
         });
 
@@ -117,8 +130,9 @@ function renderTimeSlots() {
 document.querySelectorAll(".btn-select-court").forEach((button) => {
     button.addEventListener("click", () => {
         selectedCourt = button.dataset.court;
-        selectedTime = null;
+        selectedTimes = [];
         bookingMessage.hidden = true;
+        document.querySelector("#confirm-booking").disabled = false;
         modalCourtName.textContent = button.closest(".court-card").querySelector("h3").textContent;
         modalBookingDate.textContent = new Date(`${selectedDate}T00:00:00`).toLocaleDateString("th-TH", {
             weekday: "long",
@@ -142,13 +156,22 @@ document.querySelector("#confirm-booking").addEventListener("click", () => {
         return;
     }
 
-    if (!selectedTime) {
+    if (selectedTimes.length === 0) {
         showBookingMessage("กรุณาเลือกช่วงเวลาที่ต้องการจอง", "error");
         return;
     }
 
     mockSlots[selectedCourt][selectedDate] ??= {};
-    mockSlots[selectedCourt][selectedDate][selectedTime] = "booked";
+    selectedTimes.forEach((time) => {
+        mockSlots[selectedCourt][selectedDate][time] = "booked";
+    });
+    mockUser.userBookingsByDate[selectedDate] =
+        (mockUser.userBookingsByDate[selectedDate] ?? 0) + selectedTimes.length;
     renderTimeSlots();
-    bookingModal.close();
+    showBookingMessage("จองสนามสำเร็จเรียบร้อยแล้ว!", "success");
+    document.querySelector("#confirm-booking").disabled = true;
+    timeSlotsContainer.querySelectorAll(".time-slot").forEach((button) => {
+        button.disabled = true;
+    });
+    window.setTimeout(() => bookingModal.close(), 1200);
 });

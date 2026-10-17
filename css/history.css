@@ -246,30 +246,33 @@ button {
     letter-spacing: 0.02em;
 }
 
-/* Cancelled bookings put the note first and the reason underneath. */
-.is-cancelled .booking-detail {
-    flex-direction: column-reverse;
-}
-
-.is-cancelled .detail-value {
+/* Cancelled and no-show bookings are over, so they read quieter. */
+.is-cancelled .detail-value,
+.is-no-show .detail-value {
     color: #475569;
     font-size: 14px;
     font-weight: 500;
 }
 
-.is-cancelled .booking-court {
+.is-cancelled .booking-court,
+.is-no-show .booking-court {
     color: #535968;
 }
 
 .is-cancelled .booking-when,
 .is-cancelled .booking-date,
 .is-cancelled .booking-time,
-.is-cancelled .booking-location {
+.is-cancelled .booking-location,
+.is-no-show .booking-when,
+.is-no-show .booking-date,
+.is-no-show .booking-time,
+.is-no-show .booking-location {
     color: var(--text-muted);
     font-weight: 400;
 }
 
-.is-cancelled .icon-pin {
+.is-cancelled .icon-pin,
+.is-no-show .icon-pin {
     color: var(--line-strong);
 }
 
@@ -312,6 +315,12 @@ button {
     color: #b91c1c;
 }
 
+.status-badge.is-no-show {
+    border-color: var(--line-strong);
+    background: #f1f5f9;
+    color: #475569;
+}
+
 /* Buttons */
 
 .button-primary,
@@ -346,6 +355,31 @@ button {
 
 .button-secondary:hover {
     background: var(--surface-muted);
+}
+
+.button-danger {
+    border: 0;
+    background: #dc2626;
+    color: #fff;
+}
+
+.button-danger:hover {
+    background: #b91c1c;
+}
+
+.button-cancel {
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    background: var(--surface);
+    color: #b91c1c;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.button-cancel:hover {
+    background: #fef2f2;
 }
 
 .history-empty {
@@ -476,6 +510,47 @@ button {
 
 .qr-dialog .button-secondary {
     width: 100%;
+}
+
+/* Cancel dialog */
+
+.cancel-dialog {
+    width: min(400px, calc(100% - 32px));
+    padding: 28px;
+    border: 0;
+    border-radius: 22px;
+    box-shadow: 0 24px 48px rgb(15 23 42 / 18%);
+    color: var(--ink);
+}
+
+.cancel-dialog::backdrop {
+    background: rgb(15 23 42 / 45%);
+}
+
+.cancel-dialog-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.cancel-dialog-booking {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.cancel-dialog-hint {
+    margin: 0 0 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.cancel-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 @media (max-width: 768px) {

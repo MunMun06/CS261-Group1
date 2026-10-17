@@ -4,15 +4,21 @@ const LOCATION = "คณะวิทยาศาสตร์และเทค�
 const bookings = [
     { id: "TU-69101601", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-16", start: "18:00", end: "19:00", status: "pending" },
     { id: "TU-69101101", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-11", start: "18:00", end: "19:00", status: "checked-in", checkedInBy: "สแกนประตู A1" },
-    { id: "TU-69101401", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-14", start: "17:00", end: "18:00", status: "cancelled", cancelNote: "ยกเลิกก่อน 3 ชม." },
+    { id: "TU-69101401", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-14", start: "17:00", end: "18:00", status: "cancelled" },
+    { id: "TU-69101201", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-12", start: "16:00", end: "17:00", status: "no-show" },
+    { id: "TU-69102001", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-20", start: "16:00", end: "18:00", status: "pending" },
 ];
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
+
+// Users can cancel until this long before the start time.
+const CANCEL_CUTOFF_MINUTES = 60;
 
 const statusLabels = {
     pending: "รอเช็คอิน",
     "checked-in": "เช็คอินแล้ว",
     cancelled: "ยกเลิกแล้ว",
+    "no-show": "ไม่มาเช็คอิน",
 };
 
 const listElement = document.getElementById("history-list");
@@ -24,9 +30,14 @@ const pagesElement = document.getElementById("pagination-pages");
 const pageTextElement = document.getElementById("pagination-page");
 const cardTemplate = document.getElementById("booking-card-template");
 const qrButtonTemplate = document.getElementById("qr-button-template");
+const cancelButtonTemplate = document.getElementById("cancel-button-template");
 const statusIcons = document.getElementById("status-icons-template").content;
 const qrDialog = document.getElementById("qr-dialog");
 const qrDialogCode = document.getElementById("qr-dialog-code");
+const cancelDialog = document.getElementById("cancel-dialog");
+const cancelDialogBooking = document.getElementById("cancel-dialog-booking");
+
+let bookingToCancel = null;
 
 const dateFormatter = new Intl.DateTimeFormat("th-TH", {
     weekday: "long",
@@ -54,12 +65,31 @@ function formatTime(booking) {
     return `${booking.start} – ${booking.end} (${hours} ชม.)`;
 }
 
+function getStartTime(booking) {
+    const [year, month, day] = booking.date.split("-").map(Number);
+    const [hours, minutes] = booking.start.split(":").map(Number);
+    return new Date(year, month - 1, day, hours, minutes);
+}
+
+// Newest first: later date, then later start time.
+function sortBookings() {
+    bookings.sort((a, b) => getStartTime(b) - getStartTime(a));
+}
+
+function canCancel(booking) {
+    const minutesLeft = (getStartTime(booking) - Date.now()) / 60000;
+    return booking.status === "pending" && minutesLeft >= CANCEL_CUTOFF_MINUTES;
+}
+
 function getDetail(booking) {
     if (booking.status === "checked-in") {
         return { label: "เช็คอินโดย", value: booking.checkedInBy };
     }
     if (booking.status === "cancelled") {
-        return { label: booking.cancelNote, value: "คืนโควตาประจำวันเรียบร้อยแล้ว" };
+        return { label: "", value: "คืนโควตาประจำวันเรียบร้อยแล้ว" };
+    }
+    if (booking.status === "no-show") {
+        return { label: "ไม่ได้เช็คอินภายใน 15 นาทีหลังเวลาเริ่ม", value: "ช่องเวลากลับมาว่างแล้ว" };
     }
     return { label: "รหัสจอง", value: `#${booking.id}` };
 }
@@ -83,14 +113,22 @@ function createCard(booking) {
     card.querySelector(".booking-date").textContent = formatDate(booking.date);
     card.querySelector(".booking-time").textContent = formatTime(booking);
     card.querySelector(".booking-place").textContent = LOCATION;
-    card.querySelector(".detail-label").textContent = detail.label;
+    const label = card.querySelector(".detail-label");
+    label.textContent = detail.label;
+    label.hidden = !detail.label;
     card.querySelector(".detail-value").textContent = detail.value;
     card.querySelector(".status-badge").replaceWith(createStatusBadge(booking.status));
 
+    const side = card.querySelector(".booking-side");
     if (booking.status === "pending") {
         const qrButton = qrButtonTemplate.content.firstElementChild.cloneNode(true);
         qrButton.addEventListener("click", () => showQrCode(booking));
-        card.querySelector(".booking-side").append(qrButton);
+        side.append(qrButton);
+    }
+    if (canCancel(booking)) {
+        const cancelButton = cancelButtonTemplate.content.firstElementChild.cloneNode(true);
+        cancelButton.addEventListener("click", () => askToCancel(booking));
+        side.append(cancelButton);
     }
     return card;
 }
@@ -99,6 +137,27 @@ function showQrCode(booking) {
     qrDialogCode.textContent = `#${booking.id}`;
     qrDialog.showModal();
 }
+
+function askToCancel(booking) {
+    bookingToCancel = booking;
+    cancelDialogBooking.textContent =
+        `${booking.court} · ${formatDate(booking.date)} · ${formatTime(booking)}`;
+    cancelDialog.returnValue = "";
+    cancelDialog.showModal();
+}
+
+// TODO: call POST /api/bookings/{code}/cancel when the API is ready.
+function cancelBooking(booking) {
+    booking.status = "cancelled";
+    renderHistory();
+}
+
+cancelDialog.addEventListener("close", () => {
+    if (cancelDialog.returnValue === "confirm" && bookingToCancel) {
+        cancelBooking(bookingToCancel);
+    }
+    bookingToCancel = null;
+});
 
 // Page numbers to show: first, last, and the neighbours of the current page.
 // null marks a gap, e.g. [1, 2, 3, null, 7].
@@ -204,4 +263,5 @@ function goToPage(page) {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+sortBookings();
 renderHistory();

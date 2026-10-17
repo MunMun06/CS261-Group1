@@ -265,7 +265,6 @@ function renderTimeSlots() {
 
                 bookingMessage.hidden = true;
                 renderTimeSlots();
-                updateTimeSummary();
             }
         });
         index += span;

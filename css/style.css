@@ -2,7 +2,11 @@
     color-scheme: light;
     font-family: sans-serif;
     --tu-orange: #ed791b;
-    --page-background: #f5f5f3;
+    --page-background: #f8f9fa;
+    --ink: #212529;
+    --muted: #737a82;
+    --line: #e4e7eb;
+    --success: #39845b;
 }
 
 * {
@@ -12,13 +16,14 @@
 body {
     min-height: 100vh;
     margin: 0;
+    color: var(--ink);
     background: var(--page-background);
     font-family: sans-serif;
 }
 
 .app-shell {
     display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-columns: 264px minmax(0, 1fr);
     min-height: 100vh;
 }
 
@@ -77,11 +82,6 @@ body {
     height: 32px;
 }
 
-.profile-role {
-    margin: 0 0 8px;
-    font-size: 16px;
-}
-
 .profile-detail {
     margin: 4px 0 0;
     overflow-wrap: anywhere;
@@ -117,23 +117,20 @@ body {
 }
 
 .menu-icon {
-    display: grid;
     width: 20px;
+    height: 20px;
     flex: 0 0 20px;
-    place-items: center;
-    font-size: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
 }
 
 .main-content {
     min-width: 0;
     padding: 32px;
     background: var(--page-background);
-}
-
-.date-picker h1 {
-    margin: 0 0 16px;
-    color: #292929;
-    font-size: 22px;
 }
 
 .date-list {
@@ -155,10 +152,6 @@ body {
     color: #292929;
     font: inherit;
     cursor: pointer;
-}
-
-.date-button:hover {
-    border-color: #292929;
 }
 
 .date-button.is-selected {
@@ -219,12 +212,6 @@ body {
     margin-top: 28px;
 }
 
-.court-section>h2 {
-    margin: 0 0 16px;
-    color: #292929;
-    font-size: 22px;
-}
-
 .court-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -244,10 +231,6 @@ body {
     aspect-ratio: 16 / 9;
     object-fit: cover;
     background: #e5e5e2;
-}
-
-.court-details {
-    padding: 14px;
 }
 
 .court-title-row {
@@ -287,10 +270,6 @@ body {
     color: #fff;
     font: inherit;
     cursor: pointer;
-}
-
-.btn-select-court:hover {
-    background: #d96812;
 }
 
 .booking-modal {
@@ -346,11 +325,6 @@ body {
     color: #222;
 }
 
-.time-slots {
-    display: grid;
-    gap: 8px;
-}
-
 .time-slot {
     min-height: 46px;
     padding: 10px 14px;
@@ -361,12 +335,6 @@ body {
     font: inherit;
     text-align: left;
     cursor: pointer;
-}
-
-.time-slot:hover:not(:disabled),
-.time-slot.is-selected {
-    border-color: var(--tu-orange);
-    background: #fff3e9;
 }
 
 .time-slot:disabled {
@@ -414,31 +382,9 @@ body {
 }
 
 @media (max-width: 700px) {
-    .main-content {
-        padding: 22px 16px;
-    }
-
     .court-grid {
         grid-template-columns: 1fr;
     }
-}
-
-:root {
-    --page-background: #f8f9fa;
-    --ink: #212529;
-    --muted: #737a82;
-    --line: #e4e7eb;
-    --tu-orange: #ed791b;
-    --success: #39845b;
-}
-
-body {
-    color: var(--ink);
-    background: var(--page-background);
-}
-
-.app-shell {
-    grid-template-columns: 264px minmax(0, 1fr);
 }
 
 .sidebar {
@@ -541,17 +487,6 @@ body {
     background: #fff0e5;
     color: #d9650c;
     font-weight: 600;
-}
-
-.menu-icon {
-    width: 20px;
-    height: 20px;
-    flex: 0 0 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.7;
 }
 
 .sidebar-footer {
@@ -845,11 +780,6 @@ body {
     transition: background-color 120ms ease, border-color 120ms ease;
 }
 
-.time-slot:hover:not(:disabled) {
-    border-color: #64a777;
-    background: #f2faf4;
-}
-
 .time-slot:not(:disabled):not(.is-selected) {
     border: 1.5px dashed #ea580c;
     border-radius: 12px;
@@ -958,69 +888,7 @@ body {
 }
 
 @media (max-width: 760px) {
-    .app-shell {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-        position: static;
-        height: auto;
-        min-height: 0;
-        gap: 14px;
-        padding: 14px 16px;
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
-    }
-
-    .sidebar-logo {
-        width: fit-content;
-    }
-
-    .profile-card {
-        margin: 24px 0 10px;
-        padding: 0 15px 15px;
-        text-align: center;
-    }
-
-    .profile-avatar {
-        width: 52px;
-        margin: -26px auto 8px;
-    }
-
-    .profile-role {
-        margin: 0 0 2px;
-    }
-
-    .profile-detail {
-        margin-top: 2px;
-    }
-
-    .sidebar-menu {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 5px;
-    }
-
-    .menu-button {
-        justify-content: center;
-        gap: 5px;
-        min-height: 48px;
-        padding: 5px;
-        font-size: 11px;
-        text-align: center;
-    }
-
-    .menu-icon {
-        width: 17px;
-        height: 17px;
-        flex-basis: 17px;
-    }
-
-    .sidebar-footer {
-        display: none;
-    }
-
     .main-content {
-        min-height: auto;
         padding: 24px 16px 40px;
     }
 }

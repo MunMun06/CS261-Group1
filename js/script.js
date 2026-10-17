@@ -152,12 +152,35 @@ function createTimelineSlot({ startIndex, length, booked = false, selected = fal
     if (booked) {
         button.textContent = `${range} · จองแล้ว`;
         button.disabled = true;
-    } else if (selected) {
-        button.classList.add("is-selected");
-        button.textContent = `${range} (${length} ชม.)`;
-        button.addEventListener("click", onClick);
     } else {
-        button.textContent = `${range} · ว่าง`;
+        const content = document.createElement("span");
+        content.className = "time-slot-content";
+
+        const text = document.createElement("span");
+        text.className = "time-slot-text";
+
+        const status = document.createElement("strong");
+        status.className = "time-slot-status";
+        status.textContent = selected ? range : "ว่าง";
+
+        const detail = document.createElement("span");
+        detail.className = "time-slot-detail";
+        detail.textContent = selected
+            ? `${length} ชม. · แตะเพื่อ${length > 1 ? "ลดเวลา" : "ยกเลิก"}`
+            : range;
+
+        const icon = document.createElement("span");
+        icon.className = `time-slot-icon${selected ? " is-check" : ""}`;
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = selected ? "✓" : "+";
+
+        text.append(status, detail);
+        content.append(text, icon);
+        button.append(content);
+
+        if (selected) {
+            button.classList.add("is-selected");
+        }
         button.addEventListener("click", onClick);
     }
 
@@ -197,7 +220,8 @@ function renderTimeSlots() {
             selected: isSelected,
             onClick: () => {
                 if (isSelected) {
-                    selectedTimes = selectedTimes.filter((time) => !chosenSlots.includes(time));
+                    const timeToRemove = chosenSlots.at(-1);
+                    selectedTimes = selectedTimes.filter((time) => time !== timeToRemove);
                 } else {
                     const bookedHours = mockUser.userBookingsByDate[selectedDate] ?? 0;
                     if (bookedHours + selectedTimes.length >= 2) {

@@ -3,10 +3,13 @@ const bookingFaculty = "คณะวิทยาศาสตร์และเ�
 const mockUser = window.mockUser = {
     fullname: "นายกขค งง",
     faculty: "คณะวิทยาศาสตร์และเทคโนโลยี",
-    email: "member@example.com",
+    email: "member@dome.tu.ac.th",
     userBookingsByDate: {}
 };
-const timeSlots = ["16:00 - 17:00", "17:00 - 18:00", "18:00 - 19:00", "19:00 - 20:00"];
+const timeSlots = Array.from({ length: 6 }, (_, index) => {
+    const startHour = 13 + index;
+    return `${String(startHour).padStart(2, "0")}:00 - ${String(startHour + 1).padStart(2, "0")}:00`;
+});
 const mockSlots = window.mockSlots = {
     "court-1": {},
     "court-2": {}
@@ -20,9 +23,6 @@ function toDateKey(date) {
 }
 
 const todayKey = toDateKey(new Date());
-mockSlots["court-1"][todayKey] = { "17:00 - 18:00": "booked" };
-mockSlots["court-2"][todayKey] = { "19:00 - 20:00": "booked" };
-
 let selectedDate = todayKey;
 let selectedCourt = null;
 let selectedTimes = [];
@@ -59,16 +59,20 @@ function renderDateList() {
 
         button.append(weekdayLabel, dateNumber);
         button.addEventListener("click", () => {
-            selectedDate = button.dataset.date;
-            dateList.querySelectorAll(".date-button").forEach((dateButton) => {
-                const isSelected = dateButton === button;
-                dateButton.classList.toggle("is-selected", isSelected);
-                dateButton.setAttribute("aria-pressed", String(isSelected));
-            });
+            selectDateButton(button);
         });
 
         dateList.append(button);
     }
+}
+
+function selectDateButton(selectedButton) {
+    selectedDate = selectedButton.dataset.date;
+    document.querySelectorAll(".date-button").forEach((dateButton) => {
+        const isSelected = dateButton === selectedButton;
+        dateButton.classList.toggle("is-selected", isSelected);
+        dateButton.setAttribute("aria-pressed", String(isSelected));
+    });
 }
 
 renderDateList();
@@ -82,6 +86,19 @@ const modalCourtName = document.querySelector("#modal-court-name");
 const modalBookingDate = document.querySelector("#modal-booking-date");
 const timeSlotsContainer = document.querySelector("#time-slots");
 const bookingMessage = document.querySelector("#booking-message");
+const timeSummary = document.querySelector("#time-summary");
+const timelineHours = document.querySelector("#timeline-hours");
+
+timeSlots.forEach((time) => {
+    const hourLabel = document.createElement("span");
+    hourLabel.className = "timeline-hour";
+    hourLabel.textContent = time.slice(0, 5);
+    timelineHours.append(hourLabel);
+});
+const endHourLabel = document.createElement("span");
+endHourLabel.className = "timeline-hour timeline-hour-end";
+endHourLabel.textContent = timeSlots.at(-1).slice(8, 13);
+timelineHours.append(endHourLabel);
 
 function showBookingMessage(message, type) {
     bookingMessage.textContent = message;
@@ -89,42 +106,116 @@ function showBookingMessage(message, type) {
     bookingMessage.hidden = false;
 }
 
+function getSlotIndex(time) {
+    return timeSlots.indexOf(time);
+}
+
+function formatSlotRange(startIndex, length) {
+    const start = timeSlots[startIndex].slice(0, 5);
+    const end = timeSlots[startIndex + length - 1].slice(8, 13);
+    return `${start} - ${end}`;
+}
+
+function updateTimeSummary() {
+    if (selectedTimes.length === 0) {
+        timeSummary.textContent = "ยังไม่ได้เลือกเวลา";
+        return;
+    }
+
+    const indices = selectedTimes.map(getSlotIndex).sort((first, second) => first - second);
+    const ranges = [];
+    let rangeStart = indices[0];
+    let previous = indices[0];
+
+    indices.slice(1).forEach((index) => {
+        if (index !== previous + 1) {
+            ranges.push({ start: rangeStart, length: previous - rangeStart + 1 });
+            rangeStart = index;
+        }
+        previous = index;
+    });
+    ranges.push({ start: rangeStart, length: previous - rangeStart + 1 });
+
+    timeSummary.textContent = ranges
+        .map(({ start, length }) => `${formatSlotRange(start, length)} (${length} ชม.)`)
+        .join(", ");
+}
+
+function createTimelineSlot({ startIndex, length, booked = false, selected = false, onClick }) {
+    const button = document.createElement("button");
+    const range = formatSlotRange(startIndex, length);
+    button.type = "button";
+    button.className = "time-slot";
+    button.style.gridRow = `${startIndex + 1} / span ${length}`;
+    button.setAttribute("aria-pressed", String(selected));
+
+    if (booked) {
+        button.textContent = `${range} · จองแล้ว`;
+        button.disabled = true;
+    } else if (selected) {
+        button.classList.add("is-selected");
+        button.textContent = `${range} (${length} ชม.)`;
+        button.addEventListener("click", onClick);
+    } else {
+        button.textContent = `${range} · ว่าง`;
+        button.addEventListener("click", onClick);
+    }
+
+    timeSlotsContainer.append(button);
+}
+
 function renderTimeSlots() {
     const courtBookings = mockSlots[selectedCourt] ?? {};
     const dayBookings = courtBookings[selectedDate] ?? {};
     timeSlotsContainer.replaceChildren();
-    selectedTimes = [];
+    let index = 0;
 
-    timeSlots.forEach((time) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "time-slot";
-        button.textContent = dayBookings[time] === "booked" ? `${time} · จองแล้ว` : time;
-        button.disabled = dayBookings[time] === "booked";
-        button.setAttribute("aria-pressed", "false");
+    while (index < timeSlots.length) {
+        const currentTime = timeSlots[index];
+        const isBooked = dayBookings[currentTime] === "booked";
+        const isSelected = selectedTimes.includes(currentTime);
+        let span = 1;
 
-        button.addEventListener("click", () => {
-            const selectedIndex = selectedTimes.indexOf(time);
-            if (selectedIndex >= 0) {
-                selectedTimes.splice(selectedIndex, 1);
-                button.classList.remove("is-selected");
-                button.setAttribute("aria-pressed", "false");
-            } else {
-                const bookedHours = mockUser.userBookingsByDate[selectedDate] ?? 0;
-                if (bookedHours + selectedTimes.length >= 2) {
-                    showBookingMessage("คุณใช้สิทธิ์จองเต็มโควตา 2 ชั่วโมงต่อวันแล้ว", "error");
-                    return;
+        if (isBooked || isSelected) {
+            while (index + span < timeSlots.length) {
+                const nextTime = timeSlots[index + span];
+                const sameState = isBooked
+                    ? dayBookings[nextTime] === "booked"
+                    : selectedTimes.includes(nextTime) && dayBookings[nextTime] !== "booked";
+                if (!sameState) {
+                    break;
+                }
+                span += 1;
+            }
+        }
+
+        const chosenSlots = timeSlots.slice(index, index + span);
+        createTimelineSlot({
+            startIndex: index,
+            length: span,
+            booked: isBooked,
+            selected: isSelected,
+            onClick: () => {
+                if (isSelected) {
+                    selectedTimes = selectedTimes.filter((time) => !chosenSlots.includes(time));
+                } else {
+                    const bookedHours = mockUser.userBookingsByDate[selectedDate] ?? 0;
+                    if (bookedHours + selectedTimes.length >= 2) {
+                        showBookingMessage("คุณใช้สิทธิ์จองเต็มโควตา 2 ชั่วโมงต่อวันแล้ว", "error");
+                        return;
+                    }
+                    selectedTimes.push(currentTime);
                 }
 
-                selectedTimes.push(time);
-                button.classList.add("is-selected");
-                button.setAttribute("aria-pressed", "true");
+                bookingMessage.hidden = true;
+                renderTimeSlots();
+                updateTimeSummary();
             }
-            bookingMessage.hidden = true;
         });
+        index += span;
+    }
 
-        timeSlotsContainer.append(button);
-    });
+    updateTimeSummary();
 }
 
 document.querySelectorAll(".btn-select-court").forEach((button) => {
@@ -139,12 +230,12 @@ document.querySelectorAll(".btn-select-court").forEach((button) => {
         bookingMessage.hidden = true;
         document.querySelector("#confirm-booking").disabled = false;
         modalCourtName.textContent = button.closest(".court-card").querySelector("h3").textContent;
-        modalBookingDate.textContent = new Date(`${selectedDate}T00:00:00`).toLocaleDateString("th-TH", {
-            weekday: "long",
+        const selectedDateObject = new Date(`${selectedDate}T00:00:00`);
+        modalBookingDate.textContent = `${selectedDateObject.toLocaleDateString("en-US", {
+            weekday: "short",
             day: "numeric",
-            month: "long",
-            year: "numeric"
-        });
+            month: "short"
+        })} · 13:00 - 19:00`;
         renderTimeSlots();
         bookingModal.showModal();
     });

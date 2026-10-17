@@ -5,8 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TU Basket Booking</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <script src="../js/script.js" defer></script>
+    <link rel="stylesheet" href="../css/style.css?v=sidebar-date-cleanup">
+    <script src="../js/script.js?v=sidebar-date-cleanup" defer></script>
 </head>
 
 <body>
@@ -14,7 +14,7 @@
         <aside class="sidebar">
             <a class="sidebar-logo" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
                 <span class="sidebar-logo-mark" aria-hidden="true">TU</span>
-                <span class="sidebar-logo-name">TU BASKET<br>BOOKING</span>
+                <span class="sidebar-logo-name">TU Basket Booking</span>
             </a>
 
             <section class="profile-card" aria-label="โปรไฟล์ผู้ใช้">
@@ -27,28 +27,45 @@
                 </div>
                 <h2 class="profile-role">TU Member</h2>
                 <p class="profile-detail" id="user-fullname">ชื่อ-นามสกุล</p>
-                <p class="profile-detail" id="user-faculty">คณะ</p>
+                <p class="profile-detail" id="user-faculty">คณะวิทยาศาสตร์และเทคโนโลยี</p>
                 <p class="profile-detail" id="user-email">อีเมล</p>
             </section>
 
             <nav class="sidebar-menu" aria-label="เมนูหลัก">
                 <a class="menu-button is-active" href="index.html" aria-current="page">
-                    <span class="menu-icon" aria-hidden="true">⌂</span>
-                    <span>หน้าแรกจองสนาม</span>
+                    <svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z" />
+                    </svg>
+                    <span>หน้าแรก</span>
                 </a>
                 <a class="menu-button" href="history.html">
-                    <span class="menu-icon" aria-hidden="true">◷</span>
-                    <span>ประวัติการจอง</span>
+                    <svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                    </svg>
+                    <span>ประวัติการจองสนาม</span>
                 </a>
                 <button class="menu-button" type="button">
-                    <span class="menu-icon" aria-hidden="true">⇥</span>
+                    <svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 17l5-5-5-5M15 12H3m9-8h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7" />
+                    </svg>
                     <span>ออกจากระบบ</span>
                 </button>
             </nav>
+            <div class="sidebar-footer" aria-label="มหาวิทยาลัยธรรมศาสตร์">
+                <img class="tu-logo" src="../images/TU-Logo.png" alt="Thammasat University">
+                <span class="sidebar-footer-name">TU</span>
+            </div>
         </aside>
         <main class="main-content">
             <section class="date-picker" aria-labelledby="date-heading">
-                <h1 id="date-heading">เลือกวันที่</h1>
+                <div class="section-heading-row">
+                    <div>
+                        <p class="eyebrow">TU BASKET BOOKING</p>
+                        <h1 id="date-heading">เลือกวันที่</h1>
+                    </div>
+                    <span class="date-range-note">เลือกวันจองล่วงหน้าได้ 7 วัน</span>
+                </div>
                 <div id="date-list" class="date-list" role="group" aria-label="เลือกวันที่"></div>
             </section>
             <section class="booking-rules" aria-labelledby="booking-rules-heading">
@@ -75,7 +92,7 @@
                                 <h3>สนามบาสเกตบอล สนามที่ 1</h3>
                                 <span class="court-status">ว่าง</span>
                             </div>
-                            <p>คณะวิทยาศาสตร์ฯ</p>
+                            <p>คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต</p>
                             <button class="btn-select-court" type="button" data-court="court-1">
                                 เลือกเวลา &gt;
                             </button>
@@ -90,7 +107,7 @@
                                 <h3>สนามบาสเกตบอล สนามที่ 2</h3>
                                 <span class="court-status">ว่าง</span>
                             </div>
-                            <p>คณะวิทยาศาสตร์ฯ</p>
+                            <p>คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต</p>
                             <button class="btn-select-court" type="button" data-court="court-2">
                                 เลือกเวลา &gt;
                             </button>
@@ -101,16 +118,24 @@
         </main>
     </div>
 
-    <dialog class="booking-modal" id="booking-modal" aria-labelledby="modal-court-name">
+    <dialog class="booking-modal" id="booking-modal" aria-labelledby="modal-title">
         <div class="booking-modal-header">
             <div>
-                <h2 id="modal-court-name">เลือกช่วงเวลา</h2>
+                <h2 id="modal-title">เลือกช่วงเวลา</h2>
+                <p class="modal-court-name" id="modal-court-name"></p>
                 <p id="modal-booking-date"></p>
             </div>
             <button class="modal-close" id="modal-close" type="button" aria-label="ปิดหน้าต่าง">&times;</button>
         </div>
-        <div class="time-slots" id="time-slots" role="group" aria-label="เลือกช่วงเวลา"></div>
+        <div class="timeline-grid" aria-label="ตารางช่วงเวลา">
+            <div class="timeline-hours" id="timeline-hours" aria-hidden="true"></div>
+            <div class="timeline-track time-slots" id="time-slots" role="group" aria-label="เลือกช่วงเวลา"></div>
+        </div>
         <p class="booking-message" id="booking-message" role="alert" hidden></p>
+        <div class="time-summary">
+            <span>Time summary</span>
+            <strong id="time-summary">ยังไม่ได้เลือกเวลา</strong>
+        </div>
         <button class="btn-confirm-booking" id="confirm-booking" type="button">ยืนยันการจอง</button>
     </dialog>
 </body>

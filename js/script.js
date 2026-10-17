@@ -2,7 +2,7 @@ const thaiWeekdays = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส
 const bookingFaculty = "คณะวิทยาศาสตร์และเทคโนโลยี";
 const mockUser = window.mockUser = {
     fullname: "นายกขค งง",
-    faculty: bookingFaculty,
+    faculty: "คณะวิทยาศาสตร์และเทคโนโลยี",
     email: "member@example.com",
     userBookingsByDate: {}
 };
@@ -129,6 +129,11 @@ function renderTimeSlots() {
 
 document.querySelectorAll(".btn-select-court").forEach((button) => {
     button.addEventListener("click", () => {
+        if (mockUser.faculty !== bookingFaculty) {
+            alert("ขออภัย: สงวนสิทธิ์การจองสนามสำหรับนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยีเท่านั้น");
+            return;
+        }
+
         selectedCourt = button.dataset.court;
         selectedTimes = [];
         bookingMessage.hidden = true;

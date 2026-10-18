@@ -4,10 +4,17 @@ const LOCATION = "คณะวิทยาศาสตร์และเทค�
 const bookings = [
     { id: "TU-69101601", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-16", start: "18:00", end: "19:00", status: "pending" },
     { id: "TU-69101101", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-11", start: "18:00", end: "19:00", status: "checked-in", checkedInBy: "สแกนประตู A1" },
-    { id: "TU-69101401", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-14", start: "17:00", end: "18:00", status: "cancelled" },
+    { id: "TU-69101401", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-14", start: "17:00", end: "18:00", status: "cancelled", cancelledAt: "2026-10-14T14:00" },
     { id: "TU-69101201", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-12", start: "16:00", end: "17:00", status: "no-show" },
     { id: "TU-69102001", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-20", start: "16:00", end: "18:00", status: "pending" },
 ];
+
+// Sample signed-in user until login is ready.
+const currentUser = {
+    name: "ภณวรรชน์ โขงเขตต์",
+    faculty: "คณะวิทยาศาสตร์และเทคโนโลยี",
+    email: "stu6409****@dome.tu.ac.th",
+};
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +43,8 @@ const qrDialog = document.getElementById("qr-dialog");
 const qrDialogCode = document.getElementById("qr-dialog-code");
 const cancelDialog = document.getElementById("cancel-dialog");
 const cancelDialogBooking = document.getElementById("cancel-dialog-booking");
+const menuButton = document.getElementById("menu-button");
+const menuDrawer = document.getElementById("menu-drawer");
 
 let bookingToCancel = null;
 
@@ -76,6 +85,12 @@ function sortBookings() {
     bookings.sort((a, b) => getStartTime(b) - getStartTime(a));
 }
 
+// "ยกเลิกก่อน 3 ชม." — whole hours between cancelling and the start time.
+function formatCancelNote(booking) {
+    const hours = Math.floor((getStartTime(booking) - new Date(booking.cancelledAt)) / 3600000);
+    return `ยกเลิกก่อน ${hours} ชม.`;
+}
+
 function canCancel(booking) {
     const minutesLeft = (getStartTime(booking) - Date.now()) / 60000;
     return booking.status === "pending" && minutesLeft >= CANCEL_CUTOFF_MINUTES;
@@ -86,10 +101,10 @@ function getDetail(booking) {
         return { label: "เช็คอินโดย", value: booking.checkedInBy };
     }
     if (booking.status === "cancelled") {
-        return { label: "", value: "คืนโควตาประจำวันเรียบร้อยแล้ว" };
+        return { label: "", value: "คืนโควตาประจำวันเรียบร้อยแล้ว", note: formatCancelNote(booking) };
     }
     if (booking.status === "no-show") {
-        return { label: "ไม่ได้เช็คอินภายใน 15 นาทีหลังเวลาเริ่ม", value: "ช่องเวลากลับมาว่างแล้ว" };
+        return { label: "", value: "ช่องเวลากลับมาว่างแล้ว", note: "ไม่ได้เช็คอินภายใน 15 นาทีหลังเวลาเริ่ม" };
     }
     return { label: "รหัสจอง", value: `#${booking.id}` };
 }
@@ -117,6 +132,9 @@ function createCard(booking) {
     label.textContent = detail.label;
     label.hidden = !detail.label;
     card.querySelector(".detail-value").textContent = detail.value;
+    const note = card.querySelector(".detail-note");
+    note.textContent = detail.note ?? "";
+    note.hidden = !detail.note;
     card.querySelector(".status-badge").replaceWith(createStatusBadge(booking.status));
 
     const actions = card.querySelector(".booking-actions");
@@ -150,6 +168,7 @@ function askToCancel(booking) {
 // TODO: call POST /api/bookings/{code}/cancel when the API is ready.
 function cancelBooking(booking) {
     booking.status = "cancelled";
+    booking.cancelledAt = new Date().toISOString();
     renderHistory();
 }
 
@@ -215,9 +234,12 @@ function renderPagination(totalPages, firstIndex, lastIndex) {
     const rangeText = `${firstIndex}–${lastIndex}`;
     summaryElement.textContent = `แสดง ${rangeText} จาก ${bookings.length} รายการ`;
 
-    const strong = document.createElement("strong");
-    strong.textContent = rangeText;
-    rangeElement.replaceChildren("แสดง ", strong, ` จาก ${bookings.length} รายการ`);
+    const range = document.createElement("strong");
+    range.textContent = rangeText;
+    const total = document.createElement("strong");
+    total.className = "pagination-total";
+    total.textContent = bookings.length;
+    rangeElement.replaceChildren("แสดง ", range, " จาก ", total, " รายการ");
     pageTextElement.textContent = `หน้า ${currentPage} จาก ${totalPages}`;
 
     const buttons = getPageNumbers(totalPages).map((page) => {
@@ -263,6 +285,28 @@ function goToPage(page) {
     renderHistory();
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+function openMenu() {
+    menuDrawer.showModal();
+    menuButton.setAttribute("aria-expanded", "true");
+}
+
+menuButton.addEventListener("click", openMenu);
+document.getElementById("drawer-close").addEventListener("click", () => menuDrawer.close());
+
+// The panel fills the dialog, so a click on the dialog itself landed on the backdrop.
+menuDrawer.addEventListener("click", (event) => {
+    if (event.target === menuDrawer) {
+        menuDrawer.close();
+    }
+});
+
+// Also fires when Esc closes the drawer.
+menuDrawer.addEventListener("close", () => menuButton.setAttribute("aria-expanded", "false"));
+
+document.getElementById("drawer-user-name").textContent = currentUser.name;
+document.getElementById("drawer-user-faculty").textContent = currentUser.faculty;
+document.getElementById("drawer-user-email").textContent = currentUser.email;
 
 sortBookings();
 renderHistory();

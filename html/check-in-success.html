@@ -8,5 +8,39 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <main class="container">
+    <div class="page-title">
+        <span class="subtitle text-success">อนุมัติแล้ว</span>
+        <h1>ยืนยันการเช็คอิน</h1>
+    </div>
+
+    <div class="grid-layout">
+        <!-- Left: Booking Card (Badge Success) -->
+        <section class="card booking-card">
+        <div class="card-header">
+            <div class="booking-id-group">
+            <span class="label">รหัสจอง</span>
+            <h2 class="booking-id">#TU-69101601</h2>
+            </div>
+            <span class="badge badge-success"><i class="fa-solid fa-check"></i> เช็คอินแล้ว</span>
+        </div>
+        <!-- User info & info grid -->
+        </section>
+
+        <!-- Right: Success Result Card -->
+        <section class="card result-card align-center">
+        <div class="status-icon icon-success"><i class="fa-solid fa-check"></i></div>
+        <h2 class="result-title text-success">เช็คอินสำเร็จ</h2>
+        <p class="result-subtitle">สถานะของผู้จองเปลี่ยนเป็น "เช็คอินแล้ว"</p>
+        <div class="checkin-details-box">
+            <div class="detail-col"><span class="info-label">เช็คอินเมื่อ</span><span class="info-value">[เวลาเช็คอิน] น.</span></div>
+            <div class="detail-col"><span class="info-label">เช็คอินโดย</span><span class="info-value">สแกนประตู A1</span></div>
+        </div>
+        <button type="button" class="btn btn-dark" onclick="window.location.href='check-in-approval.html'">
+            <i class="fa-solid fa-expand"></i> สแกนรายการถัดไป
+        </button>
+        </section>
+    </div>
+    </main>
 </body>
 </html>

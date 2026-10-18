@@ -63,6 +63,32 @@
             </div>
         </div>
         </section>
+        <div class="right-column">
+        <!-- Action Form -->
+        <section class="card action-card">
+            <h3>อนุมัติการเข้าใช้สนาม</h3>
+            <div class="form-group">
+            <label for="checkinPoint">จุดเช็คอิน</label>
+            <input type="text" id="checkinPoint" value="ประตู A1" class="form-control">
+            </div>
+            <button type="button" class="btn btn-primary" id="btnConfirmCheckin">
+            <i class="fa-solid fa-check"></i> ยืนยันเช็คอิน
+            </button>
+            <button type="button" class="btn btn-dark" id="btnScanNext">
+            <i class="fa-solid fa-expand"></i> สแกนรายการถัดไป
+            </button>
+        </section>
+
+        <!-- Search Card -->
+        <section class="card search-card">
+            <h3>ค้นหาด้วยรหัสจอง</h3>
+            <div class="search-box">
+            <input type="text" id="searchInput" placeholder="เช่น TU-69101601" class="form-control">
+            <button type="button" class="btn btn-outline" id="btnSearch">ค้นหา</button>
+            </div>
+            <p class="help-text">ใช้เมื่อสแกน QR Code ไม่ได้</p>
+        </section>
+        </div>
     </div>
   </main>
 </body>

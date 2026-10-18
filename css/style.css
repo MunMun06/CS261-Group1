@@ -22,3 +22,24 @@ body { background-color: var(--bg-light); color: var(--text-main); }
 
 .container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
 .grid-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.5rem; }
+
+.card { background-color: var(--card-bg); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border-color); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.booking-id { font-size: 1.5rem; font-weight: 800; }
+
+.user-info-box {
+  display: flex; align-items: center; gap: 1rem;
+  background-color: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;
+}
+.avatar-icon { width: 42px; height: 42px; border-radius: 50%; background-color: #e2e8f0; display: flex; align-items: center; justify-content: center; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 1rem; }
+.info-item.full-width { grid-column: 1 / -1; }
+.info-label { font-size: 0.8rem; color: var(--text-muted); display: block; }
+.info-value { font-weight: 600; font-size: 0.95rem; }
+
+/* Badges */
+.badge { padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; }
+.badge-warning { background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+.badge-success { background-color: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+.badge-danger { background-color: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }

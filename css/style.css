@@ -68,3 +68,13 @@ body { background-color: var(--bg-light); color: var(--text-main); }
 
 .checkin-details-box, .cancel-reason-box { width: 100%; background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; }
 .checkin-details-box { display: flex; justify-content: space-around; text-align: left; }
+
+@media (max-width: 768px) {
+  .navbar { padding: 1rem; }
+  .grid-layout { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.text-orange { color: var(--primary-orange); }
+.text-success { color: #16a34a !important; }
+.text-danger { color: #dc2626 !important; }

@@ -9,13 +9,6 @@ const bookings = [
     { id: "TU-69102001", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-20", start: "16:00", end: "18:00", status: "pending" },
 ];
 
-// Sample signed-in user until login is ready.
-const currentUser = {
-    name: "ภณวรรชน์ โขงเขตต์",
-    faculty: "คณะวิทยาศาสตร์และเทคโนโลยี",
-    email: "stu6409****@dome.tu.ac.th",
-};
-
 const PAGE_SIZE = 10;
 
 // Users can cancel until this long before the start time.
@@ -43,8 +36,6 @@ const qrDialog = document.getElementById("qr-dialog");
 const qrDialogCode = document.getElementById("qr-dialog-code");
 const cancelDialog = document.getElementById("cancel-dialog");
 const cancelDialogBooking = document.getElementById("cancel-dialog-booking");
-const menuButton = document.getElementById("menu-button");
-const menuDrawer = document.getElementById("menu-drawer");
 
 let bookingToCancel = null;
 
@@ -285,28 +276,6 @@ function goToPage(page) {
     renderHistory();
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
-function openMenu() {
-    menuDrawer.showModal();
-    menuButton.setAttribute("aria-expanded", "true");
-}
-
-menuButton.addEventListener("click", openMenu);
-document.getElementById("drawer-close").addEventListener("click", () => menuDrawer.close());
-
-// The panel fills the dialog, so a click on the dialog itself landed on the backdrop.
-menuDrawer.addEventListener("click", (event) => {
-    if (event.target === menuDrawer) {
-        menuDrawer.close();
-    }
-});
-
-// Also fires when Esc closes the drawer.
-menuDrawer.addEventListener("close", () => menuButton.setAttribute("aria-expanded", "false"));
-
-document.getElementById("drawer-user-name").textContent = currentUser.name;
-document.getElementById("drawer-user-faculty").textContent = currentUser.faculty;
-document.getElementById("drawer-user-email").textContent = currentUser.email;
 
 sortBookings();
 renderHistory();

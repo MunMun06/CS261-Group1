@@ -3,11 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TU BASKET BOOKING</title>
-  <link rel="stylesheet" href="../css/check-in-style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>เช็คอินสำเร็จ - TU Basket Booking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/check-in-style.css">
+    <script src="../js/menu.js" defer></script>
+    <script src="../js/check-in-script.js" defer></script>
 </head>
 <body>
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a class="brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                        <circle cx="11" cy="11" r="8.7" stroke="currentColor" stroke-width="1.65" />
+                        <path d="M2.3 11h17.4M11 2.3v17.4M4.9 4.9c2.4 2.2 2.4 10 0 12.2M17.1 4.9c-2.4 2.2-2.4 10 0 12.2"
+                            stroke="currentColor" stroke-width="1.65" stroke-linecap="round" />
+                    </svg>
+                </span>
+                <span class="brand-name">TU BASKET BOOKING</span>
+            </a>
+
+
+            <button class="menu-button" id="menu-button" type="button" aria-label="เปิดเมนู"
+                aria-controls="menu-drawer" aria-expanded="false">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3.33333 5H16.6667M3.33333 10H16.6667M3.33333 15H16.6667" stroke="currentColor" stroke-width="1.83"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <dialog class="menu-drawer" id="menu-drawer" aria-label="เมนู">
+        <div class="drawer-panel">
+            <div class="drawer-header">
+                <div class="drawer-header-row">
+                    <span class="member-badge">เจ้าหน้าที่ประจำสนาม</span>
+                    <button class="drawer-close" id="drawer-close" type="button" aria-label="ปิดเมนู">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.67"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="drawer-user">
+                    <h2 class="drawer-user-name" id="drawer-user-name"></h2>
+                    <span class="drawer-user-faculty">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                            <path
+                                d="M5.197 1.04C5.0712 0.986074 4.9288 0.986074 4.803 1.04L1.303 2.54C1.11862 2.61854 0.998959 2.79959 0.998959 3C0.998959 3.20041 1.11862 3.38146 1.303 3.46L2.625 4.0255C2.67407 3.97 2.73487 3.9261 2.803 3.897L4.803 3.04C4.96771 2.96659 5.15919 2.98756 5.30411 3.09488C5.44903 3.2022 5.52493 3.37924 5.50275 3.5582C5.48057 3.73716 5.36374 3.89031 5.197 3.959L3.8335 4.544L4.8035 4.9595C4.92915 5.01328 5.07135 5.01328 5.197 4.9595L8.697 3.4595C8.88075 3.38067 8.99987 3.19995 8.99987 3C8.99987 2.80005 8.88075 2.61933 8.697 2.5405L5.197 1.0405V1.04M1.655 4.6985L2.5 5.06V7.111C2.32688 7.07163 2.15157 7.04258 1.975 7.024C1.74021 6.99932 1.55468 6.81379 1.53 6.579C1.46424 5.94946 1.50652 5.31331 1.655 4.698V4.6985M4.65 8.2865C4.31201 7.95486 3.92393 7.67848 3.5 7.4675V5.489L4.409 5.879C4.78639 6.04078 5.21361 6.04078 5.591 5.879L8.345 4.6985C8.49435 5.31367 8.53664 5.94997 8.47 6.5795C8.44532 6.81429 8.25979 6.99982 8.025 7.0245C7.01626 7.13051 6.07327 7.5754 5.35 8.2865C5.15558 8.47707 4.84442 8.47707 4.65 8.2865V8.2865M3 9C3.27596 9 3.5 8.77596 3.5 8.5V7.4675C3.182 7.30951 2.8463 7.19 2.5 7.1115V8.5C2.5 8.77596 2.72404 9 3 9V9" />
+                        </svg>
+                        <span id="drawer-user-faculty"></span>
+                    </span>
+                    <span class="drawer-user-email">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                            <path
+                                d="M8 6C8 4.89617 7.10383 4 6 4C4.89617 4 4 4.89617 4 6C4 7.10383 4.89617 8 6 8C7.10383 8 8 7.10383 8 6V6M8 6V6.75C8 7.43989 8.56011 8 9.25 8C9.93989 8 10.5 7.43989 10.5 6.75V6C10.5 3.51638 8.48362 1.5 6 1.5C3.51638 1.5 1.5 3.51638 1.5 6C1.5 8.48362 3.51638 10.5 6 10.5M8.25 9.897C7.56635 10.2931 6.7901 10.5013 6 10.5005"
+                                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span id="drawer-user-email"></span>
+                    </span>
+                </div>
+            </div>
+
+            <nav class="drawer-nav" aria-label="เมนูหลัก">
+                <p class="drawer-nav-heading">เมนูหลัก</p>
+                <a class="drawer-link" href="index.html">
+                    <span class="drawer-link-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M3.33333 2.66667H12.6667C13.4026 2.66667 14 3.26411 14 4V13.3333C14 14.0692 13.4026 14.6667 12.6667 14.6667H3.33333C2.59745 14.6667 2 14.0692 2 13.3333V4C2 3.26411 2.59745 2.66667 3.33333 2.66667V2.66667"
+                                stroke="currentColor" stroke-width="1.33" />
+                            <path d="M10.6667 1.33333V4M5.33333 1.33333V4M2 6.66667H14" stroke="currentColor" stroke-width="1.33" />
+                        </svg>
+                    </span>
+                    หน้าแรกจองสนาม
+                    <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M6 3.33333L10.6667 8L6 12.6667" stroke="currentColor" stroke-width="1.33"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <a class="drawer-link" href="history.html">
+                    <span class="drawer-link-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M8 5.33333V8L10 10M14 8C14 11.3115 11.3115 14 8 14C4.68851 14 2 11.3115 2 8C2 4.68851 4.68851 2 8 2C11.3115 2 14 4.68851 14 8L8 5.33333" stroke="currentColor"
+                                stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    ประวัติการจองสนาม
+                    <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M6 3.33333L10.6667 8L6 12.6667" stroke="currentColor" stroke-width="1.33"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <hr class="drawer-divider">
+                <!-- TODO: point at the logout endpoint once login is ready. -->
+                <a class="drawer-link is-danger" href="#">
+                    <span class="drawer-link-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path
+                                d="M11.3333 10.6667L14 8M14 8L11.3333 5.33333M14 8H4.66667M8.66667 10.6667V11.3333C8.66667 12.4372 7.7705 13.3333 6.66667 13.3333H4C2.89617 13.3333 2 12.4372 2 11.3333V4.66667C2 3.56284 2.89617 2.66667 4 2.66667H6.66667C7.7705 2.66667 8.66667 3.56284 8.66667 4.66667V5.33333"
+                                stroke="currentColor" stroke-width="1.33" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    ออกจากระบบ
+                    <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M6 3.33333L10.6667 8L6 12.6667" stroke="currentColor" stroke-width="1.33"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+            </nav>
+
+            <footer class="drawer-footer">
+                <span class="drawer-footer-place">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M1.16667 7C1.16667 10.2195 3.7805 12.8333 7 12.8333C10.2195 12.8333 12.8333 10.2195 12.8333 7C12.8333 3.7805 10.2195 1.16667 7 1.16667C3.7805 1.16667 1.16667 3.7805 1.16667 7V7M4.66667 8.16667C4.66667 8.16667 5.54167 9.33333 7 9.33333C8.45833 9.33333 9.33333 8.16667 9.33333 8.16667M5.25 5.25H5.25583M8.75 5.25H8.75583"
+                            stroke="currentColor" stroke-width="1.17" />
+                    </svg>
+                    TU Sports Complex @ Rangsit
+                </span>
+                <span class="drawer-footer-version">TU Court Reservation v1.0 • Thammasat University</span>
+            </footer>
+        </div>
+    </dialog>
     <main class="container">
     <div class="page-title">
         <span class="subtitle text-success">อนุมัติแล้ว</span>
@@ -22,11 +143,11 @@
             <span class="label">รหัสจอง</span>
             <h2 class="booking-id">#TU-69101601</h2>
             </div>
-            <span class="badge badge-success"><i class="fa-solid fa-check"></i> เช็คอินแล้ว</span>
+            <span class="badge badge-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> เช็คอินแล้ว</span>
         </div>
         <!-- User info & info grid -->
          <div class="user-info-box">
-            <div class="avatar-icon"><i class="fa-regular fa-user"></i></div>
+            <div class="avatar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg></div>
             <div class="user-details">
             <p class="user-name">[ชื่อ-นามสกุลผู้จอง]</p>
             <p class="user-id">รหัสนักศึกษา [รหัสนักศึกษา]</p>
@@ -55,15 +176,15 @@
 
         <!-- Right: Success Result Card -->
         <section class="card result-card align-center">
-        <div class="status-icon icon-success"><i class="fa-solid fa-check"></i></div>
+        <div class="status-icon icon-success"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></div>
         <h2 class="result-title text-success">เช็คอินสำเร็จ</h2>
         <p class="result-subtitle">สถานะของผู้จองเปลี่ยนเป็น "เช็คอินแล้ว"</p>
         <div class="checkin-details-box">
             <div class="detail-col"><span class="info-label">เช็คอินเมื่อ</span><span class="info-value">[เวลาเช็คอิน] น.</span></div>
             <div class="detail-col"><span class="info-label">เช็คอินโดย</span><span class="info-value">สแกนประตู A1</span></div>
         </div>
-        <button type="button" class="btn btn-dark" onclick="window.location.href='check-in-approval.html'">
-            <i class="fa-solid fa-expand"></i> สแกนรายการถัดไป
+        <button type="button" class="btn btn-dark" id="btnScanNext">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" /></svg> สแกนรายการถัดไป
         </button>
         </section>
     </div>

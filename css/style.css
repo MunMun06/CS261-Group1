@@ -1,0 +1,130 @@
+:root {
+    color-scheme: light;
+    font-family: "Prompt", system-ui, sans-serif;
+    --tu-orange: #ed791b;
+    --page-background: #f5f5f3;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--page-background);
+    font-family: "Prompt", system-ui, sans-serif;
+}
+
+.app-shell {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-height: 100vh;
+    padding: 28px 18px;
+    background: var(--tu-orange);
+    color: #fff;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-decoration: none;
+}
+
+.sidebar-logo-mark {
+    display: grid;
+    width: 40px;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+.profile-card {
+    padding: 18px 14px;
+    border-radius: 8px;
+    background: #fff;
+    color: #292929;
+    text-align: center;
+}
+
+.profile-avatar {
+    display: grid;
+    width: 56px;
+    aspect-ratio: 1;
+    margin: 0 auto 10px;
+    place-items: center;
+    border-radius: 50%;
+    background: #ededeb;
+    color: #777;
+}
+
+.profile-avatar svg {
+    width: 32px;
+    height: 32px;
+}
+
+.profile-role {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.profile-detail {
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+    color: #666;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.sidebar-menu {
+    display: grid;
+    gap: 6px;
+}
+
+.menu-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.menu-button:hover,
+.menu-button.is-active {
+    background: rgb(255 255 255 / 20%);
+}
+
+.menu-icon {
+    display: grid;
+    width: 20px;
+    flex: 0 0 20px;
+    place-items: center;
+    font-size: 19px;
+}
+
+.main-content {
+    min-width: 0;
+    background: var(--page-background);
+}

@@ -1,11 +1,13 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api import bookings_router, courts_router, history_router
@@ -16,6 +18,8 @@ from app.scripts.seed_data import seed_database
 
 logger = logging.getLogger(__name__)
 NO_SHOW_SWEEP_INTERVAL_SECONDS = 15
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+FRONTEND_FOLDERS = ("html", "css", "js", "assets")
 
 
 async def run_no_show_scheduler() -> None:
@@ -61,6 +65,12 @@ app.add_middleware(
 app.include_router(courts_router)
 app.include_router(bookings_router)
 app.include_router(history_router)
+
+# The API also serves the pages, e.g. /html/index.html, so they reach the API from
+# the same origin. The Dockerfile copies these folders into the image.
+for folder in FRONTEND_FOLDERS:
+    if (PROJECT_ROOT / folder).is_dir():
+        app.mount(f"/{folder}", StaticFiles(directory=PROJECT_ROOT / folder), name=folder)
 
 
 def error_response(status_code: int, code: str, message: str) -> JSONResponse:

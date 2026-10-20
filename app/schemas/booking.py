@@ -23,4 +23,4 @@ class BookingCreate(ApiInput):
 
 class CheckinCreate(ApiInput):
     gate: str
-    qr_token: str
+    qr_token: str | None = None

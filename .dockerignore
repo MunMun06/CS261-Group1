@@ -1,0 +1,10 @@
+# Keep the build context small: only app/ and the page folders are copied in.
+.git
+.venv
+.venv.nosync
+.idea
+**/__pycache__
+.pytest_cache
+*.db
+.env
+tests

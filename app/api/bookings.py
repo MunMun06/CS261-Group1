@@ -77,6 +77,7 @@ def staff_get_booking(
     }
     if booking.checkin is not None:
         result["checkedInBy"] = f"สแกนประตู {booking.checkin.gate}"
+        result["checkedInAt"] = booking.checkin.checked_in_at.isoformat(timespec="minutes")
     return result
 
 

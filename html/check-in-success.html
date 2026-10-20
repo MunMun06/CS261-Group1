@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เช็คอินสำเร็จ - TU Basket Booking</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/check-in-style.css">
+    <script src="../js/api.js" defer></script>
     <script src="../js/menu.js" defer></script>
     <script src="../js/check-in-script.js" defer></script>
 </head>
@@ -16,13 +18,7 @@
     <header class="site-header">
         <div class="site-header-inner">
             <a class="brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
-                <span class="brand-mark" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                        <circle cx="11" cy="11" r="8.7" stroke="currentColor" stroke-width="1.65" />
-                        <path d="M2.3 11h17.4M11 2.3v17.4M4.9 4.9c2.4 2.2 2.4 10 0 12.2M17.1 4.9c-2.4 2.2-2.4 10 0 12.2"
-                            stroke="currentColor" stroke-width="1.65" stroke-linecap="round" />
-                    </svg>
-                </span>
+                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="40" height="40">
                 <span class="brand-name">TU BASKET BOOKING</span>
             </a>
 
@@ -141,31 +137,31 @@
         <div class="card-header">
             <div class="booking-id-group">
             <span class="label">รหัสจอง</span>
-            <h2 class="booking-id">#TU-69101601</h2>
+            <h2 class="booking-id" data-field="code">#TU-69101601</h2>
             </div>
-            <span class="badge badge-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> เช็คอินแล้ว</span>
+            <span class="badge badge-success" data-field="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> เช็คอินแล้ว</span>
         </div>
         <!-- User info & info grid -->
          <div class="user-info-box">
             <div class="avatar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg></div>
             <div class="user-details">
-            <p class="user-name">[ชื่อ-นามสกุลผู้จอง]</p>
-            <p class="user-id">รหัสนักศึกษา [รหัสนักศึกษา]</p>
+            <p class="user-name" data-field="name">[ชื่อ-นามสกุลผู้จอง]</p>
+            <p class="user-id" data-field="studentId">รหัสนักศึกษา [รหัสนักศึกษา]</p>
             </div>
         </div>
 
         <div class="info-grid">
             <div class="info-item">
             <span class="info-label">สนาม</span>
-            <span class="info-value">สนามบาสเกตบอล สนามที่ 1</span>
+            <span class="info-value" data-field="court">สนามบาสเกตบอล สนามที่ 1</span>
             </div>
             <div class="info-item">
             <span class="info-label">วันที่</span>
-            <span class="info-value">วันศุกร์ 16 ต.ค. 2569</span>
+            <span class="info-value" data-field="date">วันศุกร์ 16 ต.ค. 2569</span>
             </div>
             <div class="info-item">
             <span class="info-label">เวลา</span>
-            <span class="info-value">18:00 – 19:00 (1 ชม.)</span>
+            <span class="info-value" data-field="time">18:00 – 19:00 (1 ชม.)</span>
             </div>
             <div class="info-item full-width">
             <span class="info-label">สถานที่</span>
@@ -180,8 +176,8 @@
         <h2 class="result-title text-success">เช็คอินสำเร็จ</h2>
         <p class="result-subtitle">สถานะของผู้จองเปลี่ยนเป็น "เช็คอินแล้ว"</p>
         <div class="checkin-details-box">
-            <div class="detail-col"><span class="info-label">เช็คอินเมื่อ</span><span class="info-value">[เวลาเช็คอิน] น.</span></div>
-            <div class="detail-col"><span class="info-label">เช็คอินโดย</span><span class="info-value">สแกนประตู A1</span></div>
+            <div class="detail-col"><span class="info-label">เช็คอินเมื่อ</span><span class="info-value"><span data-field="checkedInAt">[เวลาเช็คอิน]</span> น.</span></div>
+            <div class="detail-col"><span class="info-label">เช็คอินโดย</span><span class="info-value" data-field="checkedInBy">สแกนประตู A1</span></div>
         </div>
         <button type="button" class="btn btn-dark" id="btnScanNext">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" /></svg> สแกนรายการถัดไป

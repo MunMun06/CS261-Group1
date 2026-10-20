@@ -1,7 +1,9 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import pytest
 from fastapi.testclient import TestClient
+from httpx import Response
 
 TZ = ZoneInfo("Asia/Bangkok")
 
@@ -222,3 +224,70 @@ def test_staff_checkin_verifies_qr_and_accepts_window_boundary(
     assert checked_in.json()["status"] == "checked-in"
     assert duplicate.status_code == 409
     assert duplicate.json()["error"]["code"] == "ALREADY_CHECKED_IN"
+
+
+def test_staff_checkin_by_booking_code_without_qr(
+    api_client: TestClient,
+    current_time: list[datetime],
+) -> None:
+    current_time[0] = datetime(2026, 10, 12, 12, 45, tzinfo=TZ)
+    created = api_client.post(
+        "/api/bookings",
+        json={
+            "courtId": 1,
+            "date": "2026-10-12",
+            "start": "13:00",
+            "durationHours": 1,
+        },
+    )
+    code = created.json()["code"]
+    checked_in = api_client.post(
+        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}
+    )
+
+    assert checked_in.status_code == 200
+    assert checked_in.json()["status"] == "checked-in"
+    assert checked_in.json()["checkedInBy"] == "สแกนประตู A1"
+
+
+def book_next_hour_and_check_in(
+    api_client: TestClient,
+    current_time: list[datetime],
+) -> Response:
+    # Class time: 16:30. The 16:00 slot has started, so the next one is 17:00.
+    current_time[0] = datetime(2026, 10, 12, 16, 30, tzinfo=TZ)
+    created = api_client.post(
+        "/api/bookings",
+        json={
+            "courtId": 1,
+            "date": "2026-10-12",
+            "start": "17:00",
+            "durationHours": 1,
+        },
+    )
+    assert created.status_code == 201
+    return api_client.post(
+        f"/api/staff/bookings/{created.json()['code']}/checkin", json={"gate": "A1"}
+    )
+
+
+def test_checkin_opens_15_minutes_before_start_by_default(
+    api_client: TestClient,
+    current_time: list[datetime],
+) -> None:
+    checked_in = book_next_hour_and_check_in(api_client, current_time)
+
+    assert checked_in.status_code == 422
+    assert checked_in.json()["error"]["code"] == "CHECKIN_TOO_EARLY"
+
+
+def test_demo_checkin_window_allows_checking_in_the_next_hour_right_away(
+    api_client: TestClient,
+    current_time: list[datetime],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CHECKIN_WINDOW_MINUTES", "60")
+    checked_in = book_next_hour_and_check_in(api_client, current_time)
+
+    assert checked_in.status_code == 200
+    assert checked_in.json()["status"] == "checked-in"

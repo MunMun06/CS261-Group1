@@ -1,15 +1,10 @@
-// Sample data until the booking API is ready. Replace with a fetch() call.
 const LOCATION = "คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต";
 
-const bookings = [
-    { id: "TU-69101601", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-16", start: "18:00", end: "19:00", status: "pending" },
-    { id: "TU-69101101", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-11", start: "18:00", end: "19:00", status: "checked-in", checkedInBy: "สแกนประตู A1" },
-    { id: "TU-69101401", court: "สนามบาสเกตบอล สนามที่ 1", date: "2026-10-14", start: "17:00", end: "18:00", status: "cancelled", cancelledAt: "2026-10-14T14:00" },
-    { id: "TU-69101201", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-12", start: "16:00", end: "17:00", status: "no-show" },
-    { id: "TU-69102001", court: "สนามบาสเกตบอล สนามที่ 2", date: "2026-10-20", start: "16:00", end: "18:00", status: "pending" },
-];
-
-const PAGE_SIZE = 10;
+// The current page from GET /api/history, newest first.
+let bookings = [];
+let totalBookings = 0;
+let totalPages = 1;
+let pageSize = 20;
 
 // Users can cancel until this long before the start time.
 const CANCEL_CUTOFF_MINUTES = 60;
@@ -69,11 +64,6 @@ function getStartTime(booking) {
     const [year, month, day] = booking.date.split("-").map(Number);
     const [hours, minutes] = booking.start.split(":").map(Number);
     return new Date(year, month - 1, day, hours, minutes);
-}
-
-// Newest first: later date, then later start time.
-function sortBookings() {
-    bookings.sort((a, b) => getStartTime(b) - getStartTime(a));
 }
 
 // "ยกเลิกก่อน 3 ชม." — whole hours between cancelling and the start time.
@@ -143,6 +133,7 @@ function createCard(booking) {
     return card;
 }
 
+// QR check-in is not in this sprint: the dialog shows the placeholder and the booking code.
 function showQrCode(booking) {
     qrDialogCode.textContent = `#${booking.id}`;
     qrDialog.showModal();
@@ -156,17 +147,9 @@ function askToCancel(booking) {
     cancelDialog.showModal();
 }
 
-// TODO: call POST /api/bookings/{code}/cancel when the API is ready.
-function cancelBooking(booking) {
-    booking.status = "cancelled";
-    booking.cancelledAt = new Date().toISOString();
-    renderHistory();
-}
-
+// TODO: cancelling is not in this sprint. When it is, call
+// POST /api/bookings/{code}/cancel here (the API already has it), then loadHistory(currentPage).
 cancelDialog.addEventListener("close", () => {
-    if (cancelDialog.returnValue === "confirm" && bookingToCancel) {
-        cancelBooking(bookingToCancel);
-    }
     bookingToCancel = null;
 });
 
@@ -221,15 +204,15 @@ function createArrow(direction) {
     return svg;
 }
 
-function renderPagination(totalPages, firstIndex, lastIndex) {
+function renderPagination(firstIndex, lastIndex) {
     const rangeText = `${firstIndex}–${lastIndex}`;
-    summaryElement.textContent = `แสดง ${rangeText} จาก ${bookings.length} รายการ`;
+    summaryElement.textContent = `แสดง ${rangeText} จาก ${totalBookings} รายการ`;
 
     const range = document.createElement("strong");
     range.textContent = rangeText;
     const total = document.createElement("strong");
     total.className = "pagination-total";
-    total.textContent = bookings.length;
+    total.textContent = totalBookings;
     rangeElement.replaceChildren("แสดง ", range, " จาก ", total, " รายการ");
     pageTextElement.textContent = `หน้า ${currentPage} จาก ${totalPages}`;
 
@@ -257,25 +240,37 @@ function renderPagination(totalPages, firstIndex, lastIndex) {
 }
 
 function renderHistory() {
-    const totalPages = Math.max(1, Math.ceil(bookings.length / PAGE_SIZE));
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const visible = bookings.slice(start, start + PAGE_SIZE);
+    const start = (currentPage - 1) * pageSize;
 
-    listElement.replaceChildren(...visible.map(createCard));
-    emptyElement.hidden = visible.length > 0;
-    paginationElement.hidden = visible.length === 0;
-    summaryElement.hidden = visible.length === 0;
+    listElement.replaceChildren(...bookings.map(createCard));
+    emptyElement.hidden = bookings.length > 0;
+    paginationElement.hidden = bookings.length === 0;
+    summaryElement.hidden = bookings.length === 0;
 
-    if (visible.length > 0) {
-        renderPagination(totalPages, start + 1, start + visible.length);
+    if (bookings.length > 0) {
+        renderPagination(start + 1, start + bookings.length);
     }
 }
 
-function goToPage(page) {
-    currentPage = page;
+async function loadHistory(page) {
+    try {
+        const data = await apiRequest(`/api/history?page=${page}`);
+        currentPage = data.page;
+        bookings = data.items;
+        totalBookings = data.total;
+        totalPages = Math.max(1, data.totalPages);
+        pageSize = data.size;
+        emptyElement.textContent = "ยังไม่มีรายการจอง";
+    } catch (error) {
+        bookings = [];
+        emptyElement.textContent = error.message;
+    }
     renderHistory();
+}
+
+async function goToPage(page) {
+    await loadHistory(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-sortBookings();
-renderHistory();
+loadHistory(1);

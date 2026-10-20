@@ -5,11 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>จองสนาม - TU Basket Booking</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/booking.css">
+    <script src="../js/api.js" defer></script>
     <script src="../js/menu.js" defer></script>
     <script src="../js/booking.js" defer></script>
 </head>
@@ -18,13 +20,7 @@
     <header class="site-header">
         <div class="site-header-inner">
             <a class="brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
-                <span class="brand-mark" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                        <circle cx="11" cy="11" r="8.7" stroke="currentColor" stroke-width="1.65" />
-                        <path d="M2.3 11h17.4M11 2.3v17.4M4.9 4.9c2.4 2.2 2.4 10 0 12.2M17.1 4.9c-2.4 2.2-2.4 10 0 12.2"
-                            stroke="currentColor" stroke-width="1.65" stroke-linecap="round" />
-                    </svg>
-                </span>
+                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="40" height="40">
                 <span class="brand-name">TU BASKET BOOKING</span>
             </a>
 
@@ -180,7 +176,7 @@
                                 คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต
                             </p>
                         </div>
-                        <button class="btn-select-court" type="button" data-court="court-1">
+                        <button class="btn-select-court" type="button" data-court="1">
                             เลือกเวลา
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="m6 4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
@@ -201,7 +197,7 @@
                                 คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต
                             </p>
                         </div>
-                        <button class="btn-select-court" type="button" data-court="court-2">
+                        <button class="btn-select-court" type="button" data-court="2">
                             เลือกเวลา
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="m6 4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />

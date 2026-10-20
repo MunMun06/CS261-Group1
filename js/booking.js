@@ -1,22 +1,8 @@
-// Sample data until the booking API is ready.
 const thaiWeekdays = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
-const bookingFaculty = "คณะวิทยาศาสตร์และเทคโนโลยี";
 const OPEN_HOUR = 8;
 const CLOSE_HOUR = 19;
 const MAX_HOURS_PER_DAY = 2;
 const HOUR_HEIGHT = 64;
-
-const mockUser = window.mockUser = {
-    faculty: bookingFaculty,
-    // Hours this user already booked, per date: { "2026-10-19": 1 }
-    userBookingsByDate: {}
-};
-
-// Start hours already booked, per court and date: { "court-1": { "2026-10-19": [13, 14] } }
-const mockSlots = window.mockSlots = {
-    "court-1": {},
-    "court-2": {}
-};
 
 const openHours = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, index) => OPEN_HOUR + index);
 
@@ -52,9 +38,11 @@ let selectedDate = todayKey;
 let selectedCourt = null;
 // Start hours the user picked, sorted. They don't have to be next to each other: [13, 15]
 let selectedHours = [];
-
-// Sample booking so the popup shows a taken slot, like the design.
-mockSlots["court-1"][todayKey] = [13, 14];
+// From GET /api/courts/{id}/slots for the open court and date.
+let bookedHours = new Set();
+let quotaUsed = 0;
+// Bumped on every slot request, so a late answer for another court or date is dropped.
+let slotRequest = 0;
 
 const monthFormatter = new Intl.DateTimeFormat("th-TH", { month: "short" });
 const yearFormatter = new Intl.DateTimeFormat("th-TH", { year: "numeric" });
@@ -132,12 +120,21 @@ function selectDate(key) {
     courtDate.textContent = `${key === todayKey ? "วันนี้ · " : ""}${shortDateLabel(key)}`;
 }
 
-function bookedHoursFor(court, date) {
-    return mockSlots[court][date] ?? [];
+function usedQuota() {
+    return quotaUsed;
 }
 
-function usedQuota() {
-    return mockUser.userBookingsByDate[selectedDate] ?? 0;
+// Today's hours that have already started can't be booked.
+function isPast(hour) {
+    return selectedDate === todayKey && hour <= new Date().getHours();
+}
+
+// Why an hour can't be picked, or null when it's free.
+function unavailableLabel(hour) {
+    if (bookedHours.has(hour)) {
+        return "จองแล้ว";
+    }
+    return isPast(hour) ? "หมดเวลา" : null;
 }
 
 function showBookingMessage(message, type) {
@@ -193,19 +190,19 @@ function renderTimeline() {
         timeline.append(line);
     });
 
-    const booked = new Set(bookedHoursFor(selectedCourt, selectedDate));
     let index = 0;
     while (index < openHours.length) {
         const hour = openHours[index];
+        const label = unavailableLabel(hour);
 
-        if (booked.has(hour)) {
+        if (label) {
             let length = 1;
-            while (booked.has(hour + length)) {
+            while (hour + length < CLOSE_HOUR && unavailableLabel(hour + length) === label) {
                 length += 1;
             }
             const slot = document.createElement("div");
             slot.className = "time-slot is-booked";
-            slot.append(textSpan("slot-status", "จองแล้ว"), textSpan("slot-range", rangeLabel(hour, length)));
+            slot.append(textSpan("slot-status", label), textSpan("slot-range", rangeLabel(hour, length)));
             placeSlot(slot, hour, length);
             index += length;
             continue;
@@ -294,44 +291,83 @@ function unpickHour(hour) {
     renderTimeline();
 }
 
-function openBooking(button) {
-    if (mockUser.faculty !== bookingFaculty) {
-        alert("ขออภัย: สงวนสิทธิ์การจองสนามสำหรับนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยีเท่านั้น");
-        return;
+// Loads which hours are taken and how much quota is used. Resolves to false if it failed.
+async function loadSlots() {
+    const request = ++slotRequest;
+    try {
+        const data = await apiRequest(`/api/courts/${selectedCourt}/slots?date=${selectedDate}`);
+        if (request !== slotRequest) {
+            return false;
+        }
+        bookedHours = new Set(
+            data.slots.filter((slot) => slot.status === "booked").map((slot) => Number(slot.start.slice(0, 2)))
+        );
+        quotaUsed = data.quotaUsed;
+        return true;
+    } catch (error) {
+        if (request === slotRequest) {
+            showBookingMessage(error.message, "error");
+        }
+        return false;
     }
+}
 
-    selectedCourt = button.dataset.court;
+async function openBooking(button) {
+    selectedCourt = Number(button.dataset.court);
     selectedHours = [];
+    bookedHours = new Set();
+    quotaUsed = 0;
     bookingMessage.hidden = true;
-    confirmButton.disabled = false;
+    confirmButton.disabled = true;
     modalCourtName.textContent = button.closest(".court-card").querySelector("h3").textContent;
     modalBookingDate.textContent = longDateLabel(selectedDate);
-    renderTimeline();
+    timeline.replaceChildren();
     bookingModal.showModal();
 
+    if (!(await loadSlots())) {
+        return;
+    }
+    confirmButton.disabled = false;
+    renderTimeline();
+
     // Start the timeline at the first free hour.
-    const booked = new Set(bookedHoursFor(selectedCourt, selectedDate));
-    const firstFree = openHours.find((hour) => !booked.has(hour)) ?? OPEN_HOUR;
+    const firstFree = openHours.find((hour) => !unavailableLabel(hour)) ?? OPEN_HOUR;
     timelineScroll.scrollTop = Math.max(0, (firstFree - OPEN_HOUR) * HOUR_HEIGHT - 8);
 }
 
-// TODO: call POST /api/bookings when the API is ready.
-function confirmBooking() {
-    if (mockUser.faculty !== bookingFaculty) {
-        showBookingMessage("ขออภัย: สงวนสิทธิ์การจองสนามสำหรับนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยีเท่านั้น", "error");
-        return;
-    }
+// Each run of picked hours is one booking: [13, 14, 16] → 13:00 for 2 hours, 16:00 for 1 hour.
+async function confirmBooking() {
     if (selectedHours.length === 0) {
         showBookingMessage("กรุณาเลือกช่วงเวลาที่ต้องการจอง", "error");
         return;
     }
 
-    mockSlots[selectedCourt][selectedDate] = [...bookedHoursFor(selectedCourt, selectedDate), ...selectedHours];
-    mockUser.userBookingsByDate[selectedDate] = usedQuota() + selectedHours.length;
-    selectedHours = [];
-    renderTimeline();
-    showBookingMessage("จองสนามสำเร็จเรียบร้อยแล้ว!", "success");
     confirmButton.disabled = true;
+    bookingMessage.hidden = true;
+    let failure = null;
+    for (const { start, length } of groupHours(selectedHours)) {
+        try {
+            await apiRequest("/api/bookings", {
+                method: "POST",
+                body: { courtId: selectedCourt, date: selectedDate, start: hourLabel(start), durationHours: length },
+            });
+        } catch (error) {
+            failure = error;
+            break;
+        }
+    }
+
+    // Show what the server has now, including any range that was booked before a failure.
+    selectedHours = [];
+    const loaded = await loadSlots();
+    renderTimeline();
+    if (failure) {
+        showBookingMessage(failure.message, "error");
+        confirmButton.disabled = !loaded;
+        return;
+    }
+
+    showBookingMessage("จองสนามสำเร็จเรียบร้อยแล้ว!", "success");
     timeline.querySelectorAll(".time-slot").forEach((slot) => {
         slot.disabled = true;
     });

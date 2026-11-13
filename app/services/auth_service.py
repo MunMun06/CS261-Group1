@@ -11,6 +11,11 @@ from app.services.booking_service import error
 
 logger = logging.getLogger(__name__)
 TU_AUTH_URL = "https://restapi.tu.ac.th/api/v1/auth/Ad/verify"
+TU_API_UNAVAILABLE_MESSAGE = (
+    "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+    "กรุณาลองใหม่อีกครั้งภายหลัง"
+)
+INVALID_CREDENTIALS_MESSAGE = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
 
 
 class TUAuthProfile(BaseModel):
@@ -31,7 +36,7 @@ def verify_tu_credentials(username: str, password: str) -> TUAuthProfile:
         raise error(
             503,
             "TU_API_NOT_CONFIGURED",
-            "TU API Application-Key is not configured.",
+            TU_API_UNAVAILABLE_MESSAGE,
         )
 
     try:
@@ -45,42 +50,46 @@ def verify_tu_credentials(username: str, password: str) -> TUAuthProfile:
             timeout=tu_api_timeout_seconds(),
         )
     except httpx.TimeoutException as exc:
-        raise error(504, "TU_API_TIMEOUT", "TU authentication timed out.") from exc
+        raise error(504, "TU_API_TIMEOUT", TU_API_UNAVAILABLE_MESSAGE) from exc
     except httpx.RequestError as exc:
         raise error(
-            503, "TU_API_UNAVAILABLE", "TU authentication is temporarily unavailable."
+            503, "TU_API_UNAVAILABLE", TU_API_UNAVAILABLE_MESSAGE
         ) from exc
 
     if response.status_code == 400:
-        raise error(401, "INVALID_CREDENTIALS", "Username or password is invalid.")
+        raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
     if response.status_code == 429:
         raise error(
-            503, "TU_API_RATE_LIMITED", "TU authentication rate limit was reached."
+            503, "TU_API_RATE_LIMITED", TU_API_UNAVAILABLE_MESSAGE
         )
     if response.status_code != 200:
         logger.warning("TU authentication returned HTTP %d", response.status_code)
-        raise error(502, "TU_API_ERROR", "TU authentication could not be completed.")
+        raise error(502, "TU_API_ERROR", TU_API_UNAVAILABLE_MESSAGE)
 
     try:
         data = response.json()
     except ValueError as exc:
         logger.warning("TU authentication returned invalid JSON.")
-        raise error(502, "TU_API_INVALID_RESPONSE", "TU returned an invalid response.") from exc
+        raise error(
+            502, "TU_API_INVALID_RESPONSE", TU_API_UNAVAILABLE_MESSAGE
+        ) from exc
 
     if not isinstance(data, dict):
         logger.warning("TU authentication returned a non-object response.")
-        raise error(502, "TU_API_INVALID_RESPONSE", "TU returned an invalid response.")
+        raise error(502, "TU_API_INVALID_RESPONSE", TU_API_UNAVAILABLE_MESSAGE)
     if data.get("status") is False:
-        raise error(401, "INVALID_CREDENTIALS", "Username or password is invalid.")
+        raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
 
     try:
         profile = TUAuthProfile.model_validate(data)
     except ValidationError as exc:
         logger.warning("TU authentication returned an incomplete profile.")
-        raise error(502, "TU_API_INVALID_RESPONSE", "TU returned an invalid response.") from exc
+        raise error(
+            502, "TU_API_INVALID_RESPONSE", TU_API_UNAVAILABLE_MESSAGE
+        ) from exc
 
     if not profile.status:
-        raise error(401, "INVALID_CREDENTIALS", "Username or password is invalid.")
+        raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
     return profile
 
 

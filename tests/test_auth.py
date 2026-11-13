@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.config import tu_api_timeout_seconds
 from app.models import User
 from app.services import auth_service
 
@@ -46,7 +47,7 @@ def mock_tu_response(
             "UserName": "6601000001",
             "PassWord": "password-for-test",
         }
-        assert timeout == 30
+        assert timeout == 10
         return httpx.Response(status_code, json=body)
 
     monkeypatch.setattr(auth_service.httpx, "post", post)
@@ -127,7 +128,10 @@ def test_invalid_tu_credentials_are_rejected(
     )
 
     assert response.status_code == 401
-    assert response.json()["error"]["code"] == "INVALID_CREDENTIALS"
+    assert response.json()["error"] == {
+        "code": "INVALID_CREDENTIALS",
+        "message": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+    }
 
 
 def test_tu_timeout_is_returned_as_gateway_timeout(
@@ -135,7 +139,7 @@ def test_tu_timeout_is_returned_as_gateway_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def timeout(*_: object, **kwargs: object) -> httpx.Response:
-        assert kwargs["timeout"] == 30
+        assert kwargs["timeout"] == 10
         raise httpx.TimeoutException("timeout")
 
     monkeypatch.setattr(auth_service.httpx, "post", timeout)
@@ -145,4 +149,52 @@ def test_tu_timeout_is_returned_as_gateway_timeout(
     )
 
     assert response.status_code == 504
-    assert response.json()["error"]["code"] == "TU_API_TIMEOUT"
+    assert response.json()["error"] == {
+        "code": "TU_API_TIMEOUT",
+        "message": (
+            "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+            "กรุณาลองใหม่อีกครั้งภายหลัง"
+        ),
+    }
+
+
+def test_tu_connection_error_returns_unavailable_message(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def connection_error(*_: object, **__: object) -> httpx.Response:
+        raise httpx.ConnectError("TU is unavailable")
+
+    monkeypatch.setattr(auth_service.httpx, "post", connection_error)
+    response = api_client.post(
+        "/api/auth/login",
+        json={"username": "6601000001", "password": "password-for-test"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "TU_API_UNAVAILABLE"
+    assert response.json()["error"]["message"] == (
+        "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+        "กรุณาลองใหม่อีกครั้งภายหลัง"
+    )
+
+
+@pytest.mark.parametrize("timeout", ["5", "7.5", "10"])
+def test_tu_timeout_setting_accepts_values_between_five_and_ten(
+    monkeypatch: pytest.MonkeyPatch,
+    timeout: str,
+) -> None:
+    monkeypatch.setenv("TU_API_TIMEOUT_SECONDS", timeout)
+
+    assert tu_api_timeout_seconds() == float(timeout)
+
+
+@pytest.mark.parametrize("timeout", ["4.9", "10.1", "0"])
+def test_tu_timeout_setting_rejects_values_outside_five_to_ten(
+    monkeypatch: pytest.MonkeyPatch,
+    timeout: str,
+) -> None:
+    monkeypatch.setenv("TU_API_TIMEOUT_SECONDS", timeout)
+
+    with pytest.raises(ValueError, match="between 5 and 10"):
+        tu_api_timeout_seconds()

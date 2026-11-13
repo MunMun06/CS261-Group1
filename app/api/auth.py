@@ -19,10 +19,67 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
         "the matching record in users. The password is not stored."
     ),
     responses={
-        401: {"description": "TU rejected the username or password."},
-        502: {"description": "TU returned an invalid response or an upstream error."},
-        503: {"description": "TU API is not configured or is unavailable."},
-        504: {"description": "TU API request timed out."},
+        401: {
+            "description": "TU rejected the username or password.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": {
+                            "code": "INVALID_CREDENTIALS",
+                            "message": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+                        }
+                    }
+                }
+            },
+        },
+        502: {
+            "description": "TU returned an invalid response or an upstream error.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": {
+                            "code": "TU_API_ERROR",
+                            "message": (
+                                "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+                                "กรุณาลองใหม่อีกครั้งภายหลัง"
+                            ),
+                        }
+                    }
+                }
+            },
+        },
+        503: {
+            "description": "TU API is not configured or is unavailable.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": {
+                            "code": "TU_API_UNAVAILABLE",
+                            "message": (
+                                "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+                                "กรุณาลองใหม่อีกครั้งภายหลัง"
+                            ),
+                        }
+                    }
+                }
+            },
+        },
+        504: {
+            "description": "TU API request timed out.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "error": {
+                            "code": "TU_API_TIMEOUT",
+                            "message": (
+                                "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+                                "กรุณาลองใหม่อีกครั้งภายหลัง"
+                            ),
+                        }
+                    }
+                }
+            },
+        },
     },
 )
 def login(

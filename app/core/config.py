@@ -53,6 +53,6 @@ def tu_api_application_key() -> str:
 
 def tu_api_timeout_seconds() -> float:
     timeout = float(os.getenv("TU_API_TIMEOUT_SECONDS", "10"))
-    if timeout <= 0:
-        raise ValueError("TU_API_TIMEOUT_SECONDS must be greater than zero.")
+    if not 5 <= timeout <= 10:
+        raise ValueError("TU_API_TIMEOUT_SECONDS must be between 5 and 10.")
     return timeout

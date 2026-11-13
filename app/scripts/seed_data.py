@@ -85,10 +85,31 @@ def seed_database(
             role="member",
         ),
         User(
+            student_id="C",
+            name_th="ผู้ใช้ทดสอบ C",
+            faculty="คณะวิศวกรรมศาสตร์",
+            email="c@example.invalid",
+            role="member",
+        ),
+        User(
+            student_id="D",
+            name_th="ผู้ใช้ทดสอบ D",
+            faculty="คณะศิลปศาสตร์",
+            email="d@example.invalid",
+            role="member",
+        ),
+        User(
             student_id="S",
             name_th="เจ้าหน้าที่ทดสอบ",
             faculty="คณะวิทยาศาสตร์และเทคโนโลยี",
             email="staff@example.invalid",
+            role="staff",
+        ),
+        User(
+            student_id="S2",
+            name_th="เจ้าหน้าที่ทดสอบ 2",
+            faculty="คณะวิทยาศาสตร์และเทคโนโลยี",
+            email="staff2@example.invalid",
             role="staff",
         ),
     )

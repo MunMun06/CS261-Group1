@@ -16,7 +16,8 @@
 
 ส่วนที่ยังไม่ได้ทำใน Sprint นี้
 
-- ยังไม่มีระบบล็อกอิน ทุกคนจะใช้งานในนามผู้ใช้ทดสอบ "A" ไปก่อน
+- มี API สำหรับตรวจสอบ Username/Password ผ่าน TU API และบันทึกข้อมูลผู้ใช้
+- ยังไม่ได้เชื่อมผล login เป็น session กับ API จองสนาม
 - ปุ่ม **แสดง QR Code** และ **ยกเลิกการจอง** มีหน้าตาให้ดูแล้ว แต่ยังไม่ได้เชื่อมกับ backend
 
 ## เทคโนโลยีที่ใช้
@@ -47,15 +48,20 @@ cp .env.example .env
 
 ถ้าใช้ Windows (PowerShell) ให้ใช้ `Copy-Item .env.example .env` แทน
 
-จากนั้นเปิดไฟล์ `.env` แล้วเปลี่ยน 3 ค่านี้เป็นอะไรก็ได้ที่ตั้งเอง
+จากนั้นเปิดไฟล์ `.env` แล้วกำหนดค่ารหัสผ่านและ secrets รวมถึง TU API Application Key
 
 ```text
 DB_PASSWORD=รหัสผ่านฐานข้อมูล
 DB_ROOT_PASSWORD=รหัสผ่าน root ของฐานข้อมูล
 QR_HMAC_SECRET=ข้อความลับยาวๆ อะไรก็ได้
+TU_API_APPLICATION_KEY=Application-Key ที่ได้รับจาก TU API
 ```
 
-ไฟล์ `.env` จะไม่ถูก commit ขึ้น Git อยู่แล้ว ใส่รหัสได้สบายใจ
+เก็บ `TU_API_APPLICATION_KEY` และ secrets ไว้ฝั่ง Backend เท่านั้น อย่าใส่ใน JavaScript
+หรือ commit ค่าใช้งานจริงขึ้น Git
+
+`SESSION_SECRET` ใน `.env.example` เตรียมไว้สำหรับขั้นตอนพัฒนา session ในภายหลัง
+ขั้นตอน login ปัจจุบันยังไม่ใช้ค่านี้
 
 **3. สั่งให้ทุกอย่างทำงาน**
 
@@ -136,7 +142,7 @@ macOS / Linux
 
 ```bash
 source .venv/bin/activate
-DATABASE_URL=sqlite:///./dev.db QR_HMAC_SECRET=dev-secret uvicorn app.main:app --port 8000
+DATABASE_URL=sqlite:///./dev.db QR_HMAC_SECRET=dev-secret TU_API_APPLICATION_KEY=ใส่คีย์ที่ได้รับ uvicorn app.main:app --port 8000
 ```
 
 Windows (PowerShell)
@@ -145,6 +151,7 @@ Windows (PowerShell)
 .\.venv\Scripts\Activate.ps1
 $env:DATABASE_URL = "sqlite:///./dev.db"
 $env:QR_HMAC_SECRET = "dev-secret"
+$env:TU_API_APPLICATION_KEY = "ใส่คีย์ที่ได้รับ"
 uvicorn app.main:app --port 8000
 ```
 
@@ -178,6 +185,41 @@ uvicorn app.main:app --port 8000
 คำสั่งนี้จะสร้างเฉพาะตาราง ไม่ใส่บัญชีทดสอบ
 
 ถ้าเป็นเครื่องที่ใช้งานจริง ให้ตั้ง `APP_ENV=production` และ `AUTO_SEED=false` ข้อมูลตัวอย่างจะได้ไม่ถูกใส่เข้าไป
+
+## Login ผ่าน TU API
+
+`POST /api/auth/login` รับ `username` และ `password` แล้วส่งไปตรวจสอบกับ TU API ที่
+`https://restapi.tu.ac.th/api/v1/auth/Ad/verify` โดยส่ง Application Key จาก
+`TU_API_APPLICATION_KEY` ใน header ฝั่ง server เท่านั้น ระบบไม่เก็บรหัสผ่าน TU
+และบันทึกหรืออัปเดตข้อมูลผู้ใช้ที่ตรวจสอบสำเร็จในตาราง `users` โดยใช้ `username`
+จาก response ของ TU เป็นรหัสนักศึกษา/ผู้ใช้
+
+ตัวอย่าง API:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{"username":"รหัส TU","password":"รหัสผ่าน TU"}
+```
+
+เมื่อสำเร็จ API ตอบข้อมูลที่บันทึกแล้ว เช่น
+
+```json
+{
+  "studentId": "6601000001",
+  "name": "นักศึกษาทดสอบ",
+  "faculty": "คณะทดสอบ"
+}
+```
+
+ถ้า TU ปฏิเสธ credentials จะตอบ `401 INVALID_CREDENTIALS`; หาก TU ไม่พร้อมใช้งาน
+หรือ timeout จะได้ `503` หรือ `504` ตามกรณี API นี้ตรวจสอบ credentials และ
+บันทึกผู้ใช้เท่านั้น ยังไม่ได้สร้าง session หรือเชื่อม login เข้ากับ API จองสนาม
+
+ขณะนี้เอกสาร TU API ที่ส่งมามีข้อมูลพอสำหรับขั้นตอนนี้แล้ว หากจะต่อยอดในภายหลัง
+ควรยืนยันเพิ่มว่า endpoint นี้อนุญาตทั้งบัญชีนักศึกษาและพนักงานหรือไม่ และค่า
+`username` ใน response เป็นรหัสที่ต้องใช้เป็น key ในระบบอย่างสม่ำเสมอหรือไม่
 
 ## โหมดเดโม: ขยายเวลาเช็คอิน
 

@@ -45,3 +45,14 @@ def qr_hmac_secret() -> str:
 
 def seed_enabled() -> bool:
     return env_bool("AUTO_SEED", default=os.getenv("APP_ENV", "development") != "production")
+
+
+def tu_api_application_key() -> str:
+    return os.getenv("TU_API_APPLICATION_KEY", "").strip()
+
+
+def tu_api_timeout_seconds() -> float:
+    timeout = float(os.getenv("TU_API_TIMEOUT_SECONDS", "10"))
+    if timeout <= 0:
+        raise ValueError("TU_API_TIMEOUT_SECONDS must be greater than zero.")
+    return timeout

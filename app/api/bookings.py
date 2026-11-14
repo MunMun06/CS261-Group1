@@ -87,7 +87,7 @@ def staff_checkin(
     code: str,
     payload: CheckinCreate,
     session: Annotated[Session, Depends(get_db)],
-    _staff: Annotated[User, Depends(get_current_staff)],
+    staff: Annotated[User, Depends(get_current_staff)],
 ) -> dict[str, object]:
     expire_no_shows(session, now_thailand())
     session.commit()
@@ -96,6 +96,7 @@ def staff_checkin(
         code,
         gate=payload.gate,
         qr_token=payload.qr_token,
+        staff=staff,
         now=now_thailand(),
     )
     return booking_to_dict(booking)

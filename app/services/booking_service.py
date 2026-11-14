@@ -240,6 +240,7 @@ def checkin_booking(
     *,
     gate: str,
     qr_token: str | None,
+    staff: User,
     now: datetime,
 ) -> Booking:
     booking = get_booking_by_code(session, code)
@@ -266,10 +267,7 @@ def checkin_booking(
             "CHECKIN_TOO_LATE",
             f"Check-in closed {minutes} minutes after the booking started.",
         )
-    # Staff login is not built yet, so check-ins are recorded under the first staff user.
-    staff = session.scalar(select(User).where(User.role == "staff").order_by(User.id))
-    if staff is None:
-        raise error(503, "NO_STAFF_USER", "No staff user exists to record the check-in.")
+    # Recorded under the staff member signed in to this session.
     session.add(
         Checkin(
             booking_id=booking.id,

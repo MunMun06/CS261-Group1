@@ -4,8 +4,11 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
+from sqlalchemy import select
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.session import SESSION_COOKIE_NAME, create_session_token
+from app.models import Booking
 
 TZ = ZoneInfo("Asia/Bangkok")
 
@@ -283,6 +286,34 @@ def test_staff_checkin_by_booking_code_without_qr(
     assert checked_in.status_code == 200
     assert checked_in.json()["status"] == "checked-in"
     assert checked_in.json()["checkedInBy"] == "สแกนประตู A1"
+
+
+def test_checkin_records_the_staff_member_from_the_session(
+    api_client: TestClient,
+    current_time: list[datetime],
+    db_session_factory: sessionmaker[Session],
+) -> None:
+    current_time[0] = datetime(2026, 10, 12, 12, 45, tzinfo=TZ)
+    created = api_client.post(
+        "/api/bookings",
+        json={
+            "courtId": 1,
+            "date": "2026-10-12",
+            "start": "13:00",
+            "durationHours": 1,
+        },
+    )
+    code = created.json()["code"]
+    # S2 is not the first staff account, so this shows the session decides who is saved.
+    checked_in = api_client.post(
+        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}, headers=as_staff("S2")
+    )
+
+    assert checked_in.status_code == 200
+    with db_session_factory() as session:
+        booking = session.scalar(select(Booking).where(Booking.code == code))
+        assert booking is not None and booking.checkin is not None
+        assert booking.checkin.staff.student_id == "S2"
 
 
 def book_next_hour_and_check_in(

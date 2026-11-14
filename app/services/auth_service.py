@@ -1,4 +1,5 @@
 import logging
+from typing import Literal
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -16,12 +17,20 @@ TU_API_UNAVAILABLE_MESSAGE = (
     "กรุณาลองใหม่อีกครั้งภายหลัง"
 )
 INVALID_CREDENTIALS_MESSAGE = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+TU_API_KEY_ERROR_MESSAGE = (
+    "ไม่สามารถยืนยันสิทธิ์การเชื่อมต่อ TU API ได้ "
+    "กรุณาตรวจสอบ Application-Key และสิทธิ์การใช้งาน"
+)
+TU_API_REQUEST_ERROR_MESSAGE = (
+    "คำขอไปยัง TU API ไม่ถูกต้อง กรุณาตรวจสอบรูปแบบคำขอ"
+)
 
 
 class TUAuthProfile(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     status: bool
+    type: Literal["student", "employee"]
     username: str = Field(min_length=1, max_length=32)
     displayname_th: str = Field(min_length=1, max_length=120)
     email: str = Field(min_length=1, max_length=255)
@@ -36,7 +45,7 @@ def verify_tu_credentials(username: str, password: str) -> TUAuthProfile:
         raise error(
             503,
             "TU_API_NOT_CONFIGURED",
-            TU_API_UNAVAILABLE_MESSAGE,
+            "TU API Application-Key is not configured.",
         )
 
     try:
@@ -56,8 +65,23 @@ def verify_tu_credentials(username: str, password: str) -> TUAuthProfile:
             503, "TU_API_UNAVAILABLE", TU_API_UNAVAILABLE_MESSAGE
         ) from exc
 
+    if response.status_code in {401, 403}:
+        code = (
+            "TU_API_KEY_UNAUTHORIZED"
+            if response.status_code == 401
+            else "TU_API_KEY_FORBIDDEN"
+        )
+        logger.error(
+            "TU authentication rejected Application-Key with HTTP %d",
+            response.status_code,
+        )
+        raise error(502, code, TU_API_KEY_ERROR_MESSAGE)
     if response.status_code == 400:
-        raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
+        data = _response_json(response)
+        if _is_invalid_credentials_message(_response_message(data)):
+            raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
+        logger.warning("TU authentication rejected the request with HTTP 400.")
+        raise error(502, "TU_API_REQUEST_ERROR", TU_API_REQUEST_ERROR_MESSAGE)
     if response.status_code == 429:
         raise error(
             503, "TU_API_RATE_LIMITED", TU_API_UNAVAILABLE_MESSAGE
@@ -66,19 +90,15 @@ def verify_tu_credentials(username: str, password: str) -> TUAuthProfile:
         logger.warning("TU authentication returned HTTP %d", response.status_code)
         raise error(502, "TU_API_ERROR", TU_API_UNAVAILABLE_MESSAGE)
 
-    try:
-        data = response.json()
-    except ValueError as exc:
+    data = _response_json(response)
+    if data is None:
         logger.warning("TU authentication returned invalid JSON.")
-        raise error(
-            502, "TU_API_INVALID_RESPONSE", TU_API_UNAVAILABLE_MESSAGE
-        ) from exc
-
-    if not isinstance(data, dict):
-        logger.warning("TU authentication returned a non-object response.")
         raise error(502, "TU_API_INVALID_RESPONSE", TU_API_UNAVAILABLE_MESSAGE)
     if data.get("status") is False:
-        raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
+        if _is_invalid_credentials_message(_response_message(data)):
+            raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
+        logger.warning("TU authentication returned status=false.")
+        raise error(502, "TU_API_ERROR", TU_API_UNAVAILABLE_MESSAGE)
 
     try:
         profile = TUAuthProfile.model_validate(data)
@@ -89,8 +109,31 @@ def verify_tu_credentials(username: str, password: str) -> TUAuthProfile:
         ) from exc
 
     if not profile.status:
-        raise error(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MESSAGE)
+        raise error(502, "TU_API_ERROR", TU_API_UNAVAILABLE_MESSAGE)
     return profile
+
+
+def _response_json(response: httpx.Response) -> dict[str, object] | None:
+    try:
+        data = response.json()
+    except ValueError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _response_message(data: dict[str, object] | None) -> str:
+    message = data.get("message") if data else None
+    return message if isinstance(message, str) else ""
+
+
+def _is_invalid_credentials_message(message: str) -> bool:
+    normalized = " ".join(message.casefold().split())
+    if "request body" in normalized:
+        return False
+    return (
+        "user or password invalid" in normalized
+        or "username or password invalid" in normalized
+    )
 
 
 def upsert_tu_user(session: Session, profile: TUAuthProfile) -> User:
@@ -106,12 +149,7 @@ def upsert_tu_user(session: Session, profile: TUAuthProfile) -> User:
         session.add(user)
 
     user.name_th = profile.displayname_th
-    user.faculty = (
-        profile.faculty
-        or profile.organization
-        or profile.department
-        or "มหาวิทยาลัยธรรมศาสตร์"
-    )
+    user.faculty = profile.faculty or "มหาวิทยาลัยธรรมศาสตร์"
     user.email = profile.email
     session.flush()
     return user

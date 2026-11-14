@@ -8,6 +8,7 @@ from app.core.config import tu_api_timeout_seconds
 from app.core.session import SESSION_COOKIE_NAME, create_session_token
 from app.models import User
 from app.services import auth_service
+from app.services.auth_service import TUAuthProfile, upsert_tu_user
 
 
 def tu_student_profile(
@@ -157,7 +158,7 @@ def test_login_updates_existing_user_without_creating_duplicate(
 @pytest.mark.parametrize(
     ("status_code", "body"),
     [
-        (200, {"status": False, "message": "invalid"}),
+        (200, {"status": False, "message": "User or Password Invalid!"}),
         (400, {"status": False, "message": "User or Password Invalid!"}),
     ],
 )
@@ -180,6 +181,77 @@ def test_invalid_tu_credentials_are_rejected(
         "code": "INVALID_CREDENTIALS",
         "message": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
     }
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"status": False, "message": "Could not read the request body!"},
+        {
+            "status": False,
+            "message": "The request body has error! (UserName or PassWord Invalid!)",
+        },
+    ],
+)
+def test_tu_bad_request_is_not_reported_as_invalid_credentials(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    body: dict[str, object],
+) -> None:
+    mock_tu_response(monkeypatch, body, status_code=400)
+
+    response = api_client.post(
+        "/api/auth/login",
+        json={"username": "6601000001", "password": "password-for-test"},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["code"] == "TU_API_REQUEST_ERROR"
+
+
+@pytest.mark.parametrize(
+    ("status_code", "expected_code"),
+    [(401, "TU_API_KEY_UNAUTHORIZED"), (403, "TU_API_KEY_FORBIDDEN")],
+)
+def test_tu_application_key_errors_are_not_reported_as_outages(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    status_code: int,
+    expected_code: str,
+) -> None:
+    mock_tu_response(
+        monkeypatch,
+        {"status": False, "message": "Application-Key invalid"},
+        status_code=status_code,
+    )
+
+    response = api_client.post(
+        "/api/auth/login",
+        json={"username": "6601000001", "password": "password-for-test"},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["code"] == expected_code
+
+
+def test_employee_organization_is_not_saved_as_faculty(
+    db_session_factory: sessionmaker[Session],
+) -> None:
+    profile = TUAuthProfile.model_validate(
+        {
+            "status": True,
+            "type": "employee",
+            "username": "employee-01",
+            "displayname_th": "บุคลากรทดสอบ",
+            "email": "employee@tu.ac.th",
+            "organization": "สำนักงานตัวอย่าง",
+        }
+    )
+
+    with db_session_factory() as session:
+        user = upsert_tu_user(session, profile)
+        session.commit()
+        assert user.faculty == "มหาวิทยาลัยธรรมศาสตร์"
 
 
 def test_tu_timeout_is_returned_as_gateway_timeout(

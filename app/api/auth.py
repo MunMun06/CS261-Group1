@@ -35,17 +35,49 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
             },
         },
         502: {
-            "description": "TU returned an invalid response or an upstream error.",
+            "description": (
+                "TU rejected the request, rejected the Application-Key, or returned "
+                "an invalid response."
+            ),
             "content": {
                 "application/json": {
-                    "example": {
-                        "error": {
-                            "code": "TU_API_ERROR",
-                            "message": (
-                                "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
-                                "กรุณาลองใหม่อีกครั้งภายหลัง"
-                            ),
-                        }
+                    "examples": {
+                        "applicationKeyRejected": {
+                            "summary": "Application-Key is invalid or unauthorized",
+                            "value": {
+                                "error": {
+                                    "code": "TU_API_KEY_FORBIDDEN",
+                                    "message": (
+                                        "ไม่สามารถยืนยันสิทธิ์การเชื่อมต่อ TU API ได้ "
+                                        "กรุณาตรวจสอบ Application-Key และสิทธิ์การใช้งาน"
+                                    ),
+                                }
+                            },
+                        },
+                        "invalidRequest": {
+                            "summary": "TU API rejected the request body",
+                            "value": {
+                                "error": {
+                                    "code": "TU_API_REQUEST_ERROR",
+                                    "message": (
+                                        "คำขอไปยัง TU API ไม่ถูกต้อง "
+                                        "กรุณาตรวจสอบรูปแบบคำขอ"
+                                    ),
+                                }
+                            },
+                        },
+                        "upstreamUnavailable": {
+                            "summary": "TU API returned an upstream error",
+                            "value": {
+                                "error": {
+                                    "code": "TU_API_ERROR",
+                                    "message": (
+                                        "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ "
+                                        "กรุณาลองใหม่อีกครั้งภายหลัง"
+                                    ),
+                                }
+                            },
+                        },
                     }
                 }
             },

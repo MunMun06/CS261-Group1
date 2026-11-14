@@ -214,12 +214,18 @@ Content-Type: application/json
 }
 ```
 
-ถ้า TU ปฏิเสธ credentials จะตอบ `401 INVALID_CREDENTIALS`; หาก TU ไม่พร้อมใช้งาน
-หรือ timeout จะได้ `503 TU_API_UNAVAILABLE` หรือ `504 TU_API_TIMEOUT` ตามกรณี
-โดยข้อความคือ “ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง”
+ถ้า TU ปฏิเสธ Username/Password จะตอบ `401 INVALID_CREDENTIALS`; ถ้า TU
+เชื่อมต่อไม่ได้จะตอบ `503 TU_API_UNAVAILABLE` หรือ `504 TU_API_TIMEOUT`
+พร้อมข้อความ “ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง”
+กรณี Application-Key หรือ body ที่ส่งไป TU ผิด จะได้ `TU_API_KEY_UNAUTHORIZED`,
+`TU_API_KEY_FORBIDDEN` หรือ `TU_API_REQUEST_ERROR` เพื่อแยกจาก credentials ของผู้ใช้
 กำหนด `TU_API_TIMEOUT_SECONDS` ได้ตั้งแต่ 5 ถึง 10 วินาที (ค่าเริ่มต้น 10 วินาที)
 API นี้ตรวจสอบ credentials และบันทึกผู้ใช้เท่านั้น ยังไม่ได้สร้าง session หรือเชื่อม
 login เข้ากับ API จองสนาม
+
+สำหรับบัญชีพนักงาน TU ส่ง `organization` แทน `faculty`; เนื่องจากตาราง `users`
+ยังไม่มีช่อง organization ระบบจึงไม่บันทึก organization เป็นคณะ และใช้ค่า
+`มหาวิทยาลัยธรรมศาสตร์` ในช่อง faculty แทน
 
 ขณะนี้เอกสาร TU API ที่ส่งมามีข้อมูลพอสำหรับขั้นตอนนี้แล้ว หากจะต่อยอดในภายหลัง
 ควรยืนยันเพิ่มว่า endpoint นี้อนุญาตทั้งบัญชีนักศึกษาและพนักงานหรือไม่ และค่า

@@ -4,6 +4,9 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.models import User
 
 TZ = ZoneInfo("Asia/Bangkok")
 
@@ -24,6 +27,56 @@ def test_booking_and_conflicting_slot_are_enforced(api_client: TestClient) -> No
     assert created.json()["qrToken"].startswith(created.json()["code"] + ".")
     assert conflict.status_code == 409
     assert conflict.json()["error"]["code"] == "SLOT_TAKEN"
+
+
+def book(court_id: int, day: str, start: str, hours: int) -> dict[str, object]:
+    return {"courtId": court_id, "date": day, "start": start, "durationHours": hours}
+
+
+@pytest.mark.parametrize(
+    ("student_id", "faculty"),
+    [("ENG1", "คณะวิศวกรรมศาสตร์"), ("ART1", "คณะศิลปศาสตร์")],
+)
+def test_other_faculty_cannot_book(
+    api_client: TestClient,
+    db_session_factory: sessionmaker[Session],
+    student_id: str,
+    faculty: str,
+) -> None:
+    # The seeded users are all from Science, so this test adds a user from another faculty.
+    with db_session_factory() as session:
+        session.add(
+            User(
+                student_id=student_id,
+                name_th="ผู้ใช้ต่างคณะ",
+                faculty=faculty,
+                email=f"{student_id.lower()}@example.invalid",
+                role="member",
+            )
+        )
+        session.commit()
+
+    rejected = api_client.post(
+        "/api/bookings",
+        json=book(1, "2026-10-12", "16:00", 1),
+        headers={"X-Student-Id": student_id},
+    )
+    # Nothing was saved, so the same slot is still free for a Science user.
+    allowed = api_client.post("/api/bookings", json=book(1, "2026-10-12", "16:00", 1))
+
+    assert rejected.status_code == 403
+    assert rejected.json()["error"]["code"] == "FACULTY_NOT_ALLOWED"
+    assert allowed.status_code == 201
+
+
+def test_science_faculty_can_book(api_client: TestClient) -> None:
+    response = api_client.post(
+        "/api/bookings",
+        json=book(1, "2026-10-12", "16:00", 1),
+        headers={"X-Student-Id": "B"},
+    )
+
+    assert response.status_code == 201
 
 
 def test_booking_rules_and_daily_quota(api_client: TestClient) -> None:

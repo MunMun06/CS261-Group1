@@ -20,6 +20,8 @@ const quotaLabel = document.querySelector("#quota-label");
 const quotaValue = document.querySelector("#quota-value");
 const quotaBar = document.querySelector("#quota-bar");
 const confirmButton = document.querySelector("#confirm-booking");
+const successBanner = document.querySelector("#success-banner");
+const successMessage = document.querySelector("#success-message");
 
 function toDateKey(date) {
     const year = date.getFullYear();
@@ -43,6 +45,7 @@ let bookedHours = new Set();
 let quotaUsed = 0;
 // Bumped on every slot request, so a late answer for another court or date is dropped.
 let slotRequest = 0;
+let previewRequest = 0;
 
 const monthFormatter = new Intl.DateTimeFormat("th-TH", { month: "short" });
 const yearFormatter = new Intl.DateTimeFormat("th-TH", { year: "numeric" });
@@ -117,7 +120,79 @@ function selectDate(key) {
         button.classList.toggle("is-selected", isSelected);
         button.setAttribute("aria-pressed", String(isSelected));
     });
-    courtDate.textContent = `${key === todayKey ? "วันนี้ · " : ""}${shortDateLabel(key)}`;
+    const date = fromDateKey(key);
+    const period = key === todayKey ? "ข้อมูลช่วงว่างของวันนี้" : "ข้อมูลช่วงว่างของวันที่เลือก";
+    courtDate.textContent = `${period} · ${shortDateLabel(key)} ${yearFormatter.format(date)}`;
+    document.querySelectorAll(".availability-date-label").forEach((label) => {
+        label.textContent = `ช่วงเวลา ${shortDateLabel(key)}`;
+    });
+    document.querySelectorAll("[data-preview-court]").forEach((preview) => {
+        preview.setAttribute("aria-label", `ช่วงเวลาว่าง ${shortDateLabel(key)}`);
+    });
+    refreshCourtPreviews();
+
+    if (bookingModal.open && selectedCourt !== null) {
+        refreshActiveCourtDate();
+    }
+}
+
+async function refreshCourtPreviews() {
+    const request = ++previewRequest;
+    const date = selectedDate;
+    const previews = [...document.querySelectorAll("[data-preview-court]")];
+    previews.forEach((preview) => {
+        preview.replaceChildren();
+        preview.setAttribute("aria-busy", "true");
+    });
+
+    await Promise.all(previews.map(async (preview) => {
+        const courtId = Number(preview.dataset.previewCourt);
+        try {
+            const data = await apiRequest(`/api/courts/${courtId}/slots?date=${date}`);
+            if (request !== previewRequest) {
+                return;
+            }
+            const booked = new Set(
+                data.slots.filter((slot) => slot.status === "booked").map((slot) => Number(slot.start.slice(0, 2)))
+            );
+            const fragment = document.createDocumentFragment();
+            openHours.forEach((hour) => {
+                const slot = document.createElement("span");
+                const isPastHour = date === todayKey && hour <= new Date().getHours();
+                const status = booked.has(hour) ? "is-booked" : isPastHour ? "is-past" : "is-free";
+                slot.className = `availability-slot ${status}`;
+                slot.textContent = String(hour).padStart(2, "0");
+                slot.title = `${hourLabel(hour)} – ${hourLabel(hour + 1)} · ${booked.has(hour) ? "จองแล้ว" : isPastHour ? "หมดเวลา" : "ว่าง"}`;
+                slot.setAttribute("aria-label", slot.title);
+                fragment.append(slot);
+            });
+            preview.replaceChildren(fragment);
+            preview.setAttribute("aria-busy", "false");
+        } catch (error) {
+            if (request !== previewRequest) {
+                return;
+            }
+            const message = document.createElement("span");
+            message.className = "availability-error";
+            message.textContent = "โหลดข้อมูลช่วงเวลาว่างไม่สำเร็จ";
+            message.title = error.message;
+            message.setAttribute("role", "alert");
+            preview.replaceChildren(message);
+            preview.setAttribute("aria-busy", "false");
+        }
+    }));
+}
+
+async function refreshActiveCourtDate() {
+    selectedHours = [];
+    bookingMessage.hidden = true;
+    modalBookingDate.textContent = longDateLabel(selectedDate);
+    confirmButton.disabled = true;
+    timeline.replaceChildren();
+    if (await loadSlots()) {
+        confirmButton.disabled = false;
+        renderTimeline();
+    }
 }
 
 function usedQuota() {
@@ -342,6 +417,9 @@ async function confirmBooking() {
         return;
     }
 
+    const completedCourtName = modalCourtName.textContent;
+    const completedDate = longDateLabel(selectedDate);
+    const completedRanges = groupHours(selectedHours).map(({ start, length }) => rangeLabel(start, length));
     confirmButton.disabled = true;
     bookingMessage.hidden = true;
     let failure = null;
@@ -367,6 +445,9 @@ async function confirmBooking() {
         return;
     }
 
+    successMessage.textContent = `จองสำเร็จแล้ว - ${completedCourtName} · ${completedDate} · ${completedRanges.join(", ")}`;
+    successBanner.hidden = false;
+    refreshCourtPreviews();
     showBookingMessage("จองสนามสำเร็จเรียบร้อยแล้ว!", "success");
     timeline.querySelectorAll(".time-slot").forEach((slot) => {
         slot.disabled = true;
@@ -385,6 +466,9 @@ bookingModal.addEventListener("click", (event) => {
     }
 });
 confirmButton.addEventListener("click", confirmBooking);
+document.querySelector("#success-dismiss").addEventListener("click", () => {
+    successBanner.hidden = true;
+});
 
 renderDateList();
 selectDate(selectedDate);

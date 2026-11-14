@@ -79,6 +79,32 @@ def test_science_faculty_can_book(api_client: TestClient) -> None:
     assert response.status_code == 201
 
 
+def test_allowed_faculty_still_gets_quota_and_duplicate_errors(
+    api_client: TestClient,
+) -> None:
+    user_b = {"X-Student-Id": "B"}
+    first = api_client.post(
+        "/api/bookings", json=book(1, "2026-10-12", "12:00", 2), headers=user_b
+    )
+    same_slot_again = api_client.post(
+        "/api/bookings", json=book(1, "2026-10-12", "12:00", 2), headers=user_b
+    )
+    other_user_same_slot = api_client.post(
+        "/api/bookings", json=book(1, "2026-10-12", "13:00", 1)
+    )
+    over_quota = api_client.post(
+        "/api/bookings", json=book(2, "2026-10-12", "15:00", 1), headers=user_b
+    )
+
+    assert first.status_code == 201
+    assert same_slot_again.status_code == 409
+    assert same_slot_again.json()["error"]["code"] == "SLOT_TAKEN"
+    assert other_user_same_slot.status_code == 409
+    assert other_user_same_slot.json()["error"]["code"] == "SLOT_TAKEN"
+    assert over_quota.status_code == 422
+    assert over_quota.json()["error"]["code"] == "QUOTA_EXCEEDED"
+
+
 def test_booking_rules_and_daily_quota(api_client: TestClient) -> None:
     overlong = api_client.post(
         "/api/bookings",

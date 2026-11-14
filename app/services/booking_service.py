@@ -26,6 +26,9 @@ RULE_ERRORS = {
     "QUOTA_EXCEEDED": (422, "You can book at most 2 hours per day."),
 }
 
+# Only students and staff of this faculty can book the courts.
+ALLOWED_FACULTY = "คณะวิทยาศาสตร์และเทคโนโลยี"
+
 # Statuses that can no longer change, with the error returned when they are acted on.
 FINAL_STATUS_ERRORS = {
     "cancelled": ("ALREADY_CANCELLED", "This booking was already cancelled."),
@@ -159,6 +162,12 @@ def create_booking(
     duration_hours: int,
     now: datetime,
 ) -> Booking:
+    if user.faculty.strip() != ALLOWED_FACULTY:
+        raise error(
+            403,
+            "FACULTY_NOT_ALLOWED",
+            "Only students and staff of the Faculty of Science and Technology can book courts.",
+        )
     if session.get(Court, court_id) is None:
         raise error(404, "COURT_NOT_FOUND", "The requested court does not exist.")
     validate_booking_date(day, now)

@@ -236,6 +236,31 @@ def test_staff_checkin_verifies_qr_and_accepts_window_boundary(
     assert duplicate.json()["error"]["code"] == "ALREADY_CHECKED_IN"
 
 
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [
+        ("GET", "/api/staff/bookings/TU-69101102"),
+        ("POST", "/api/staff/bookings/TU-69101102/checkin"),
+    ],
+)
+def test_member_gets_403_from_staff_apis(
+    api_client: TestClient, method: str, path: str
+) -> None:
+    # api_client is signed in as the member "A".
+    response = api_client.request(method, path, json={"gate": "A1"})
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_staff_apis_need_a_session(api_client: TestClient) -> None:
+    api_client.cookies.clear()
+
+    response = api_client.get("/api/staff/bookings/TU-69101102")
+
+    assert response.status_code == 401
+
+
 def test_staff_checkin_by_booking_code_without_qr(
     api_client: TestClient,
     current_time: list[datetime],

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.session import set_session_cookie
+from app.core.session import clear_session_cookie, set_session_cookie
 from app.schemas.auth import LoginRequest, LoginResponse
 from app.services.auth_service import upsert_tu_user, verify_tu_credentials
 
@@ -100,3 +100,18 @@ def login(
         name=user.name_th,
         faculty=user.faculty,
     )
+
+
+@router.post(
+    "/logout",
+    status_code=204,
+    summary="End the current session",
+    description=(
+        "Removes the session cookie, so later requests need a new login. "
+        "Succeeds even if there was no session."
+    ),
+)
+def logout() -> Response:
+    response = Response(status_code=204)
+    clear_session_cookie(response)
+    return response

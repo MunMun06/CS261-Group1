@@ -60,3 +60,13 @@ def set_session_cookie(response: Response, student_id: str) -> None:
         secure=os.getenv("APP_ENV", "development") == "production",
         path="/",
     )
+
+
+def clear_session_cookie(response: Response) -> None:
+    response.delete_cookie(
+        SESSION_COOKIE_NAME,
+        httponly=True,
+        samesite="lax",
+        secure=os.getenv("APP_ENV", "development") == "production",
+        path="/",
+    )

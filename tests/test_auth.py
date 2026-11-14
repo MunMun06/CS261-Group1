@@ -85,6 +85,16 @@ def test_login_verifies_and_saves_tu_profile(
         assert user.role == "member"
 
 
+def test_logout_removes_the_session_cookie(api_client: TestClient) -> None:
+    response = api_client.post("/api/auth/logout")
+
+    assert response.status_code == 204
+    set_cookie = response.headers["set-cookie"].lower()
+    assert set_cookie.startswith(f"{SESSION_COOKIE_NAME}=")
+    assert "max-age=0" in set_cookie
+    assert "httponly" in set_cookie
+
+
 def test_login_updates_existing_user_without_creating_duplicate(
     api_client: TestClient,
     db_session_factory: sessionmaker[Session],

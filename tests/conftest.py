@@ -11,6 +11,7 @@ from sqlalchemy.pool import StaticPool
 from app import main
 from app.api import bookings, courts, history
 from app.core.database import Base, get_db
+from app.core.session import SESSION_COOKIE_NAME, create_session_token
 from app.scripts.seed_data import seed_database
 
 TZ = ZoneInfo("Asia/Bangkok")
@@ -60,6 +61,8 @@ def api_client(
 
     main.app.dependency_overrides[get_db] = override_get_db
     client = TestClient(main.app)
+    # Requests are made as the seeded user "A" unless a test sends another session.
+    client.cookies.set(SESSION_COOKIE_NAME, create_session_token("A"))
     try:
         yield client
     finally:

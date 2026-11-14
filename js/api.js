@@ -38,6 +38,8 @@ async function apiRequest(path, { method = "GET", body } = {}) {
     try {
         response = await fetch(`${API_BASE}${path}`, {
             method,
+            // Sends the session cookie from login, also when a dev server runs on another port.
+            credentials: "include",
             headers: body ? { "Content-Type": "application/json" } : {},
             body: body ? JSON.stringify(body) : undefined,
         });

@@ -11,13 +11,15 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app import main
 from app.core.database import Base, get_db
+from app.core.session import SESSION_COOKIE_NAME, create_session_token
 from app.models import BookingSlot
 from app.scripts.seed_data import seed_database
 from app.services import booking_service
 from app.services.quota_checker import BookingDecision
 
-# Requests without this header are made as the seeded user "A".
-USER_B = {"X-Student-Id": "B"}
+def as_user(student_id: str) -> dict[str, str]:
+    """Headers that send a session for the seeded user; api_client is "A" without them."""
+    return {"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"}
 
 
 def booking(court_id: int, start: str, hours: int) -> dict[str, object]:
@@ -26,8 +28,8 @@ def booking(court_id: int, start: str, hours: int) -> dict[str, object]:
 
 def test_another_user_cannot_book_a_taken_slot(api_client: TestClient) -> None:
     first = api_client.post("/api/bookings", json=booking(1, "16:00", 1))
-    same_slot = api_client.post("/api/bookings", json=booking(1, "16:00", 1), headers=USER_B)
-    other_court = api_client.post("/api/bookings", json=booking(2, "16:00", 1), headers=USER_B)
+    same_slot = api_client.post("/api/bookings", json=booking(1, "16:00", 1), headers=as_user("B"))
+    other_court = api_client.post("/api/bookings", json=booking(2, "16:00", 1), headers=as_user("B"))
 
     assert first.status_code == 201
     assert same_slot.status_code == 409
@@ -37,9 +39,9 @@ def test_another_user_cannot_book_a_taken_slot(api_client: TestClient) -> None:
 
 def test_partial_overlap_is_rejected(api_client: TestClient) -> None:
     held = api_client.post("/api/bookings", json=booking(1, "13:00", 2))
-    overlaps_end = api_client.post("/api/bookings", json=booking(1, "14:00", 2), headers=USER_B)
-    overlaps_start = api_client.post("/api/bookings", json=booking(1, "12:00", 2), headers=USER_B)
-    right_after = api_client.post("/api/bookings", json=booking(1, "15:00", 1), headers=USER_B)
+    overlaps_end = api_client.post("/api/bookings", json=booking(1, "14:00", 2), headers=as_user("B"))
+    overlaps_start = api_client.post("/api/bookings", json=booking(1, "12:00", 2), headers=as_user("B"))
+    right_after = api_client.post("/api/bookings", json=booking(1, "15:00", 1), headers=as_user("B"))
     slots = api_client.get("/api/courts/1/slots", params={"date": "2026-10-12"})
 
     assert held.status_code == 201
@@ -63,7 +65,7 @@ def test_slot_saved_by_another_request_at_the_same_moment(
         "check_booking_rules",
         lambda *args, **kwargs: BookingDecision(True, None, 0),
     )
-    late = api_client.post("/api/bookings", json=booking(1, "16:00", 1), headers=USER_B)
+    late = api_client.post("/api/bookings", json=booking(1, "16:00", 1), headers=as_user("B"))
 
     assert held.status_code == 201
     assert late.status_code == 409
@@ -85,7 +87,7 @@ def test_code_taken_at_the_same_moment_gets_the_next_code(
         return code
 
     monkeypatch.setattr(booking_service, "next_booking_code", code_counted_too_early)
-    second = api_client.post("/api/bookings", json=booking(2, "16:00", 1), headers=USER_B)
+    second = api_client.post("/api/bookings", json=booking(2, "16:00", 1), headers=as_user("B"))
 
     assert first.status_code == 201
     assert second.status_code == 201
@@ -150,7 +152,7 @@ def post_at_the_same_moment(
 
 def test_two_users_booking_the_same_slot_at_once(shared_db: sessionmaker[Session]) -> None:
     responses = post_at_the_same_moment(
-        [(booking(1, "16:00", 1), {}), (booking(1, "16:00", 1), USER_B)]
+        [(booking(1, "16:00", 1), as_user("A")), (booking(1, "16:00", 1), as_user("B"))]
     )
 
     assert sorted(response.status_code for response in responses) == [201, 409]
@@ -165,7 +167,7 @@ def test_two_users_booking_the_same_slot_at_once(shared_db: sessionmaker[Session
 
 def test_two_users_booking_different_slots_at_once(shared_db: sessionmaker[Session]) -> None:
     responses = post_at_the_same_moment(
-        [(booking(1, "16:00", 1), {}), (booking(2, "16:00", 1), USER_B)]
+        [(booking(1, "16:00", 1), as_user("A")), (booking(2, "16:00", 1), as_user("B"))]
     )
 
     assert [response.status_code for response in responses] == [201, 201]

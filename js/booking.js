@@ -11,7 +11,7 @@ const dateMonth = document.querySelector("#date-month");
 const courtDate = document.querySelector("#court-date");
 const bookingModal = document.querySelector("#booking-modal");
 const modalCourtName = document.querySelector("#modal-court-name");
-const modalBookingDate = document.querySelector("#modal-booking-date");
+const slotHeadingDate = document.querySelector("#slot-heading-date");
 const timelineScroll = document.querySelector("#timeline-scroll");
 const timeline = document.querySelector("#time-slots");
 const bookingMessage = document.querySelector("#booking-message");
@@ -72,6 +72,10 @@ function shortDateLabel(key) {
 function longDateLabel(key) {
     const date = fromDateKey(key);
     return `${longWeekdayFormatter.format(date)} ${date.getDate()} ${monthFormatter.format(date)}`;
+}
+
+function updateSlotHeadingDate() {
+    slotHeadingDate.textContent = ` · ${longDateLabel(selectedDate)}`;
 }
 
 // "ต.ค. 2569", or "ต.ค. – พ.ย. 2569" when the 7 days cross a month.
@@ -252,7 +256,7 @@ async function refreshCourtPreviews() {
 async function refreshActiveCourtDate() {
     selectedHours = [];
     bookingMessage.hidden = true;
-    modalBookingDate.textContent = longDateLabel(selectedDate);
+    updateSlotHeadingDate();
     confirmButton.disabled = true;
     timeline.replaceChildren();
     if (await loadSlots()) {
@@ -273,7 +277,7 @@ function isPast(hour) {
 // Why an hour can't be picked, or null when it's free.
 function unavailableLabel(hour) {
     if (bookedHours.has(hour)) {
-        return myBookedHours.has(hour) ? "จองคุณ" : "จองแล้ว";
+        return myBookedHours.has(hour) ? "ของคุณ" : "ไม่ว่าง";
     }
     return isPast(hour) ? "หมดเวลา" : null;
 }
@@ -343,7 +347,7 @@ function renderTimeline() {
             }
             const slot = document.createElement("div");
             slot.className = `time-slot is-booked${myBookedHours.has(hour) ? " is-mine" : ""}`;
-            slot.append(textSpan("slot-status", label), textSpan("slot-range", rangeLabel(hour, length)));
+            slot.append(textSpan("slot-range", rangeLabel(hour, length)), textSpan("slot-status", label));
             placeSlot(slot, hour, length);
             index += length;
             continue;
@@ -475,7 +479,7 @@ async function openBooking(button) {
     bookingMessage.hidden = true;
     confirmButton.disabled = true;
     modalCourtName.textContent = button.closest(".court-card").querySelector("h3").textContent;
-    modalBookingDate.textContent = longDateLabel(selectedDate);
+    updateSlotHeadingDate();
     timeline.replaceChildren();
     bookingModal.showModal();
     refreshDateAvailability();

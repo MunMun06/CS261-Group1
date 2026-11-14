@@ -549,13 +549,10 @@
     line-height: 1.3;
 }
 
-.modal-date {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.modal-subtitle {
     margin: 4px 0 0;
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .modal-close {
@@ -608,14 +605,23 @@
     font-size: 20px;
 }
 
-.slot-picker .section-note,
-.modal-instruction {
-    font-size: 13px;
+.slot-picker-heading .section-heading-row {
+    align-items: center;
+}
+
+.slot-heading-date {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .modal-instruction {
-    margin: 4px 0 0;
+    flex: 0 1 420px;
+    margin: 0;
     color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: right;
 }
 
 .timeline-scroll {
@@ -1147,15 +1153,15 @@
 }
 
 .date-availability {
-    color: var(--text-muted);
+    color: var(--accent-strong);
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
 }
 
 .date-button.is-selected .date-availability {
-    color: rgb(255 255 255 / 78%);
+    color: #fdba74;
 }
 
 .date-availability.is-error {
@@ -1215,5 +1221,20 @@
 
     .date-button {
         height: 68px;
+    }
+
+    .modal-subtitle {
+        font-size: 12px;
+    }
+
+    .slot-picker-heading .section-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .modal-instruction {
+        flex-basis: auto;
+        text-align: left;
     }
 }

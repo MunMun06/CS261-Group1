@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import tu_api_timeout_seconds
-from app.core.session import SESSION_COOKIE_NAME
+from app.core.session import SESSION_COOKIE_NAME, create_session_token
 from app.models import User
 from app.services import auth_service
 
@@ -93,6 +93,40 @@ def test_logout_removes_the_session_cookie(api_client: TestClient) -> None:
     assert set_cookie.startswith(f"{SESSION_COOKIE_NAME}=")
     assert "max-age=0" in set_cookie
     assert "httponly" in set_cookie
+
+
+def test_request_without_session_returns_401(api_client: TestClient) -> None:
+    api_client.cookies.clear()
+
+    response = api_client.get("/api/history")
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_expired_session_returns_401(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SESSION_TIMEOUT_MINUTES", "0")
+    expired = create_session_token("A")
+
+    response = api_client.get(
+        "/api/history", headers={"Cookie": f"{SESSION_COOKIE_NAME}={expired}"}
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_session_with_wrong_signature_returns_401(api_client: TestClient) -> None:
+    payload, _, _ = create_session_token("A").partition(".")
+
+    response = api_client.get(
+        "/api/history", headers={"Cookie": f"{SESSION_COOKIE_NAME}={payload}.forged"}
+    )
+
+    assert response.status_code == 401
 
 
 def test_login_updates_existing_user_without_creating_duplicate(

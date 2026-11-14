@@ -38,7 +38,8 @@ def create_session_token(student_id: str) -> str:
 
 
 def read_session_student_id(token: str) -> str | None:
-    """Returns the student ID in a token this server signed, or None if it is not one."""
+    """Returns the student ID in a token this server signed that has not expired yet,
+    or None otherwise."""
     payload, _, signature = token.partition(".")
     if not payload or not hmac.compare_digest(signature, _sign(payload)):
         return None
@@ -46,7 +47,12 @@ def read_session_student_id(token: str) -> str | None:
         data = json.loads(_decode(payload))
     except (binascii.Error, UnicodeDecodeError, ValueError):
         return None
-    student_id = data.get("sub") if isinstance(data, dict) else None
+    if not isinstance(data, dict):
+        return None
+    expires_at = data.get("exp")
+    if not isinstance(expires_at, int) or expires_at <= time.time():
+        return None
+    student_id = data.get("sub")
     return student_id if isinstance(student_id, str) and student_id else None
 
 

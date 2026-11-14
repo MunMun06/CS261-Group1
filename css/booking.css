@@ -1139,3 +1139,81 @@
         gap: 20px;
     }
 }
+
+/* Availability counts beneath each date in the modal picker. */
+.date-button {
+    height: 72px;
+    gap: 4px;
+}
+
+.date-availability {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.date-button.is-selected .date-availability {
+    color: rgb(255 255 255 / 78%);
+}
+
+.date-availability.is-error {
+    color: var(--danger);
+}
+
+/* Distinguish the current user's own reservations from other bookings. */
+.time-slot.is-mine {
+    border-color: #c4b5fd;
+    background: #f5f3ff;
+}
+
+.time-slot.is-mine .slot-status {
+    color: #6d28d9;
+}
+
+/* Keep clear and confirm actions together at the bottom of the summary panel. */
+.summary-actions {
+    display: grid;
+    grid-template-columns: minmax(76px, 0.7fr) minmax(0, 1.8fr);
+    gap: 10px;
+    margin-top: auto;
+}
+
+.btn-clear-selection {
+    min-height: 56px;
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.btn-clear-selection:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+.btn-clear-selection:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.summary-actions .btn-confirm-booking {
+    min-width: 0;
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .date-list {
+        grid-template-columns: repeat(7, minmax(72px, 1fr));
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+
+    .date-button {
+        height: 68px;
+    }
+}

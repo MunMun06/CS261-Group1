@@ -24,3 +24,12 @@ def get_current_user(
     if user is None:
         raise error(401, "UNAUTHORIZED", "No signed-in user was found.")
     return user
+
+
+def get_current_staff(
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """The signed-in user, who must have the staff role to use /api/staff/* APIs."""
+    if user.role != "staff":
+        raise error(403, "FORBIDDEN", "Only staff accounts can use this API.")
+    return user

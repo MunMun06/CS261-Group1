@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_staff, get_current_user
 from app.core.time import now_thailand
 from app.models import User
 from app.schemas.booking import BookingCreate, CheckinCreate
@@ -60,6 +60,7 @@ def cancel_my_booking(
 def staff_get_booking(
     code: str,
     session: Annotated[Session, Depends(get_db)],
+    _staff: Annotated[User, Depends(get_current_staff)],
 ) -> dict[str, object]:
     expire_no_shows(session, now_thailand())
     session.commit()
@@ -86,6 +87,7 @@ def staff_checkin(
     code: str,
     payload: CheckinCreate,
     session: Annotated[Session, Depends(get_db)],
+    _staff: Annotated[User, Depends(get_current_staff)],
 ) -> dict[str, object]:
     expire_no_shows(session, now_thailand())
     session.commit()

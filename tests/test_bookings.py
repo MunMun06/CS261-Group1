@@ -5,7 +5,14 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
 
+from app.core.session import SESSION_COOKIE_NAME, create_session_token
+
 TZ = ZoneInfo("Asia/Bangkok")
+
+
+def as_staff(student_id: str = "S") -> dict[str, str]:
+    """Headers that send a session for a seeded staff account (api_client is member "A")."""
+    return {"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"}
 
 
 def test_booking_and_conflicting_slot_are_enforced(api_client: TestClient) -> None:
@@ -201,19 +208,22 @@ def test_staff_checkin_verifies_qr_and_accepts_window_boundary(
         },
     )
     code = created.json()["code"]
-    lookup = api_client.get(f"/api/staff/bookings/{code}")
+    lookup = api_client.get(f"/api/staff/bookings/{code}", headers=as_staff())
     invalid_qr = api_client.post(
         f"/api/staff/bookings/{code}/checkin",
         json={"gate": "A1", "qrToken": f"{code}." + "0" * 64},
+        headers=as_staff(),
     )
     current_time[0] = datetime(2026, 10, 12, 13, 15, tzinfo=TZ)
     checked_in = api_client.post(
         f"/api/staff/bookings/{code}/checkin",
         json={"gate": "A1", "qrToken": created.json()["qrToken"]},
+        headers=as_staff(),
     )
     duplicate = api_client.post(
         f"/api/staff/bookings/{code}/checkin",
         json={"gate": "A1", "qrToken": created.json()["qrToken"]},
+        headers=as_staff(),
     )
 
     assert lookup.status_code == 200
@@ -242,7 +252,7 @@ def test_staff_checkin_by_booking_code_without_qr(
     )
     code = created.json()["code"]
     checked_in = api_client.post(
-        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}
+        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}, headers=as_staff()
     )
 
     assert checked_in.status_code == 200
@@ -267,7 +277,9 @@ def book_next_hour_and_check_in(
     )
     assert created.status_code == 201
     return api_client.post(
-        f"/api/staff/bookings/{created.json()['code']}/checkin", json={"gate": "A1"}
+        f"/api/staff/bookings/{created.json()['code']}/checkin",
+        json={"gate": "A1"},
+        headers=as_staff(),
     )
 
 

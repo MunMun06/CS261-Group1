@@ -20,6 +20,7 @@ TZ = ZoneInfo("Asia/Bangkok")
 def current_time(monkeypatch: pytest.MonkeyPatch) -> list[datetime]:
     now = [datetime(2026, 10, 10, 10, 0, tzinfo=TZ)]
     monkeypatch.setenv("QR_HMAC_SECRET", "test-only-secret")
+    monkeypatch.setenv("SESSION_SECRET", "test-only-session-secret")
     monkeypatch.setenv("TU_API_APPLICATION_KEY", "test-application-key")
     monkeypatch.setenv("TU_API_TIMEOUT_SECONDS", "10")
     monkeypatch.setattr(courts, "now_thailand", lambda: now[0])

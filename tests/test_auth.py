@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import tu_api_timeout_seconds
+from app.core.session import SESSION_COOKIE_NAME
 from app.models import User
 from app.services import auth_service
 
@@ -71,6 +72,8 @@ def test_login_verifies_and_saves_tu_profile(
         "name": "นักศึกษาทดสอบ",
         "faculty": "คณะทดสอบ",
     }
+    assert response.cookies.get(SESSION_COOKIE_NAME)
+    assert "httponly" in response.headers["set-cookie"].lower()
     with db_session_factory() as session:
         user = session.scalar(
             select(User).where(User.student_id == "6601000001")
@@ -128,6 +131,7 @@ def test_invalid_tu_credentials_are_rejected(
     )
 
     assert response.status_code == 401
+    assert SESSION_COOKIE_NAME not in response.cookies
     assert response.json()["error"] == {
         "code": "INVALID_CREDENTIALS",
         "message": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",

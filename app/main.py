@@ -15,6 +15,7 @@ from app.core.config import (
     cors_origins,
     qr_hmac_secret,
     seed_enabled,
+    session_secret,
     tu_api_timeout_seconds,
 )
 from app.jobs import sweep_no_shows
@@ -46,6 +47,8 @@ async def lifespan(_: FastAPI):
         raise RuntimeError(str(exc)) from exc
     if not qr_hmac_secret():
         raise RuntimeError("QR_HMAC_SECRET must be configured before starting the API.")
+    if not session_secret():
+        raise RuntimeError("SESSION_SECRET must be configured before starting the API.")
     migrate_database()
     if seed_enabled():
         seed_database()

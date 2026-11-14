@@ -43,6 +43,15 @@ def qr_hmac_secret() -> str:
     return os.getenv("QR_HMAC_SECRET", "")
 
 
+def session_secret() -> str:
+    return os.getenv("SESSION_SECRET", "")
+
+
+def session_timeout_minutes() -> int:
+    """A session lasts this many minutes after login; the user must log in again after."""
+    return int(os.getenv("SESSION_TIMEOUT_MINUTES", "60"))
+
+
 def seed_enabled() -> bool:
     return env_bool("AUTO_SEED", default=os.getenv("APP_ENV", "development") != "production")
 

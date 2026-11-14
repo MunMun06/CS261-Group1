@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.session import set_session_cookie
 from app.schemas.auth import LoginRequest, LoginResponse
 from app.services.auth_service import upsert_tu_user, verify_tu_credentials
 
@@ -16,7 +17,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
     summary="Verify TU credentials and save user profile",
     description=(
         "Checks the username and password with TU API, then creates or updates "
-        "the matching record in users. The password is not stored."
+        "the matching record in users and starts a session in an HttpOnly cookie. "
+        "The password is not stored."
     ),
     responses={
         401: {
@@ -84,6 +86,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 )
 def login(
     payload: LoginRequest,
+    response: Response,
     session: Annotated[Session, Depends(get_db)],
 ) -> LoginResponse:
     profile = verify_tu_credentials(
@@ -91,6 +94,7 @@ def login(
     )
     user = upsert_tu_user(session, profile)
     session.commit()
+    set_session_cookie(response, user.student_id)
     return LoginResponse(
         student_id=user.student_id,
         name=user.name_th,

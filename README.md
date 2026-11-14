@@ -60,8 +60,8 @@ TU_API_APPLICATION_KEY=Application-Key ที่ได้รับจาก TU A
 เก็บ `TU_API_APPLICATION_KEY` และ secrets ไว้ฝั่ง Backend เท่านั้น อย่าใส่ใน JavaScript
 หรือ commit ค่าใช้งานจริงขึ้น Git
 
-`SESSION_SECRET` ใน `.env.example` เตรียมไว้สำหรับขั้นตอนพัฒนา session ในภายหลัง
-ขั้นตอน login ปัจจุบันยังไม่ใช้ค่านี้
+`SESSION_SECRET` ใช้เซ็น session ที่สร้างหลัง login สำเร็จ (ต้องตั้งค่า ไม่อย่างนั้น API จะไม่เริ่มทำงาน)
+และ `SESSION_TIMEOUT_MINUTES` กำหนดว่า session อยู่ได้กี่นาที (ค่าเริ่มต้น 60)
 
 **3. สั่งให้ทุกอย่างทำงาน**
 

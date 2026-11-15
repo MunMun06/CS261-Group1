@@ -2,11 +2,11 @@
 
 .main-content {
     display: flex;
-    max-width: 1200px;
+    max-width: 1240px;
     flex-direction: column;
-    gap: 28px;
+    gap: 30px;
     margin: 0 auto;
-    padding: 32px 32px 64px;
+    padding: 48px 32px 72px;
 }
 
 .section-heading-row {
@@ -16,7 +16,83 @@
     gap: 12px;
 }
 
-.date-picker h1,
+.page-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--accent-strong);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.page-intro h1 {
+    margin: 0;
+    color: var(--ink-heading);
+    font-size: clamp(30px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.page-subtitle {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+.success-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid #a7f3d0;
+    border-radius: 16px;
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.success-icon {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+.success-message {
+    flex: 1;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.success-history-link {
+    color: #047857;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.success-dismiss {
+    display: flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #047857;
+}
+
+.success-dismiss:hover {
+    background: rgb(5 150 105 / 10%);
+}
+
 .court-section h2,
 .slot-picker h3 {
     margin: 0;
@@ -28,7 +104,7 @@
 
 .section-note {
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -37,30 +113,36 @@
 .date-picker {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 20px 24px 24px;
+    gap: 12px;
+    padding: 18px 24px;
     border: 1px solid var(--line);
-    border-radius: 20px;
+    border-radius: 16px;
     background: var(--surface);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+}
+
+.date-picker h3 {
+    margin: 0;
+    color: var(--ink-heading);
+    font-size: 16px;
+    font-weight: 700;
 }
 
 .date-list {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
 }
 
 .date-button {
     display: flex;
     min-width: 0;
-    height: 64px;
+    height: 54px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--surface);
     color: var(--ink-heading);
     transition: border-color 140ms ease, transform 140ms ease;
@@ -84,31 +166,21 @@
 }
 
 .date-number {
-    font-size: 19px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 1;
-}
-
-/* Rules on the left, courts on the right */
-
-.booking-layout {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 24px;
 }
 
 .booking-rules {
     display: flex;
     min-width: 0;
-    max-width: 320px;
-    flex: 1 1 280px;
+    width: 100%;
     flex-direction: column;
-    gap: 16px;
-    padding: 20px 22px;
-    border: 1px solid #fed7aa;
+    gap: 14px;
+    padding: 20px 24px;
+    border: 1px solid var(--line);
     border-radius: 16px;
-    background: var(--accent-soft);
+    background: var(--surface);
 }
 
 .booking-rules-title {
@@ -139,18 +211,19 @@
 
 .booking-rules ul {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 8px 26px;
     margin: 0;
     padding: 0;
     color: var(--text);
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.55;
     list-style: none;
 }
 
 .booking-rules li {
     display: flex;
+    flex: 1 1 220px;
     gap: 10px;
 }
 
@@ -169,15 +242,14 @@
 .court-section {
     display: flex;
     min-width: 0;
-    flex: 999 1 560px;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
 }
 
 .court-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
 }
 
 .court-card {
@@ -196,36 +268,56 @@
     box-shadow: 0 9px 22px rgb(15 23 42 / 9%);
 }
 
-.court-image {
+.court-banner {
+    position: relative;
+    height: 190px;
+    overflow: hidden;
+    background: #f97316;
+}
+
+.court-banner svg {
     display: block;
     width: 100%;
-    height: 180px;
-    background: #d9dce3;
-    object-fit: cover;
+    height: 100%;
+}
+
+.court-number {
+    position: absolute;
+    bottom: 14px;
+    left: 18px;
+    padding: 6px 10px;
+    border: 1px solid rgb(255 255 255 / 45%);
+    border-radius: 999px;
+    background: rgb(15 23 42 / 20%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
 }
 
 .court-details {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 18px 20px 0;
+    gap: 12px;
+    padding: 20px 22px 4px;
 }
 
 .court-details h3 {
     margin: 0;
     color: var(--ink-heading);
-    font-size: 19px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     line-height: 1.35;
 }
 
 .court-place {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     margin: 0;
     color: var(--text-subtle);
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .court-place svg {
@@ -233,12 +325,76 @@
     color: var(--accent-strong);
 }
 
+.court-card-blue .court-place svg {
+    color: #2563eb;
+}
+
+.availability-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 2px;
+    padding: 10px 11px 8px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.availability-heading {
+    display: flex;
+    align-items: center;
+    color: var(--accent-strong);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.availability-slots {
+    display: grid;
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+    gap: 4px;
+    min-height: 7px;
+}
+
+.availability-slot {
+    display: block;
+    min-width: 0;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #475569;
+}
+
+.availability-slot.is-free {
+    background: var(--accent);
+}
+
+.availability-slot.is-booked,
+.availability-slot.is-past {
+    background: #475569;
+}
+
+.availability-scale {
+    display: flex;
+    justify-content: space-between;
+    color: #64748b;
+    font-size: 8px;
+    line-height: 1;
+}
+
+.availability-error {
+    grid-column: 1 / -1;
+    align-self: center;
+    color: var(--danger);
+    font-size: 12px;
+}
+
 .btn-select-court {
     display: flex;
     min-height: 52px;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 8px;
     padding: 0 20px;
     border: 0;
     border-top: 1px solid #eef0f3;
@@ -252,6 +408,81 @@
 .btn-select-court:hover {
     background: var(--accent-soft);
     color: #9a3412;
+}
+
+/* Dark footer */
+
+.site-footer {
+    background: #111827;
+    color: #cbd5e1;
+}
+
+.site-footer-inner {
+    display: grid;
+    max-width: 1240px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(150px, 0.7fr) minmax(200px, 1fr);
+    gap: 48px;
+    margin: 0 auto;
+    padding: 44px 32px;
+}
+
+.footer-about,
+.footer-links,
+.footer-location {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.footer-brand img {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+}
+
+.footer-about p,
+.footer-location p {
+    max-width: 420px;
+    margin: 0;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.footer-links h2,
+.footer-location h2 {
+    margin: 0 0 2px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.footer-links a {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.footer-links a:hover {
+    color: #fff;
+}
+
+.footer-bottom {
+    padding: 16px 24px;
+    border-top: 1px solid rgb(148 163 184 / 18%);
+    color: #64748b;
+    font-size: 11px;
+    text-align: center;
 }
 
 /* Time picker popup */
@@ -294,13 +525,10 @@
     line-height: 1.3;
 }
 
-.modal-date {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.modal-subtitle {
     margin: 4px 0 0;
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .modal-close {
@@ -322,8 +550,22 @@
 
 .booking-modal-body {
     display: flex;
+    flex: 1 1 auto;
     min-height: 0;
+    flex-direction: column;
     align-items: stretch;
+    overflow-y: auto;
+}
+
+.booking-modal-body > .date-picker {
+    flex: 0 0 auto;
+    margin: 20px 28px 0;
+}
+
+.booking-time-layout {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .slot-picker {
@@ -339,14 +581,23 @@
     font-size: 20px;
 }
 
-.slot-picker .section-note,
-.modal-instruction {
-    font-size: 13px;
+.slot-picker-heading .section-heading-row {
+    align-items: center;
+}
+
+.slot-heading-date {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .modal-instruction {
-    margin: 4px 0 0;
+    flex: 0 1 420px;
+    margin: 0;
     color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: right;
 }
 
 .timeline-scroll {
@@ -508,6 +759,13 @@
     gap: 6px;
 }
 
+.summary-hint {
+    margin: -2px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .summary-label,
 .quota-row {
     color: var(--text-muted);
@@ -613,7 +871,29 @@
 @media (max-width: 768px) {
     .main-content {
         gap: 20px;
-        padding: 16px 20px 32px;
+        padding: 32px 20px 48px;
+    }
+
+    .page-intro h1 {
+        font-size: 30px;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+    }
+
+    .success-banner {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .success-message {
+        flex-basis: calc(100% - 44px);
+    }
+
+    .success-history-link {
+        margin-left: 34px;
     }
 
     .date-picker {
@@ -625,12 +905,41 @@
     }
 
     .date-button {
-        height: 58px;
-        border-radius: 12px;
+        height: 52px;
+        border-radius: 10px;
+    }
+
+    .court-section .section-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .court-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .court-banner {
+        height: 170px;
+    }
+
+    .availability-slots {
+        gap: 3px;
     }
 
     .booking-rules {
-        max-width: none;
+        padding: 18px;
+    }
+
+    .site-footer-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 30px 24px;
+        padding: 36px 20px;
+    }
+
+    .footer-about {
+        grid-column: 1 / -1;
     }
 
     /* Popup: summary moves under the timeline. */
@@ -649,8 +958,36 @@
     }
 
     .booking-modal-body {
-        flex-direction: column;
         overflow-y: auto;
+    }
+
+    .booking-modal-body > .date-picker {
+        margin: 14px 20px 0;
+        padding: 14px;
+    }
+
+    .date-picker .section-heading-row {
+        align-items: flex-start;
+    }
+
+    .date-picker .section-note {
+        font-size: 11px;
+    }
+
+    .date-button {
+        height: 46px;
+    }
+
+    .date-weekday {
+        font-size: 10px;
+    }
+
+    .date-number {
+        font-size: 15px;
+    }
+
+    .booking-time-layout {
+        flex-direction: column;
     }
 
     .slot-picker {
@@ -694,5 +1031,148 @@
 
     .slot-selected-detail {
         font-size: 12px;
+    }
+}
+
+@media (max-width: 420px) {
+    .site-footer-inner {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .footer-about {
+        grid-column: auto;
+    }
+
+    .success-history-link {
+        margin-left: 0;
+    }
+}
+
+/* Use a softer card shadow and a small lift on hover. */
+.court-card {
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgb(15 23 42 / 7%);
+    transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.court-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgb(15 23 42 / 11%);
+}
+
+/* Highlight the rules panel with a light surface and university-orange accent. */
+.booking-rules {
+    border: 1px solid #fed7aa;
+    border-left: 4px solid var(--accent);
+    background: #fff7ed;
+}
+
+/* Rules sidebar on the left; court selection takes the remaining width. */
+.booking-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 300px) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+}
+
+/* Stack the rules above the courts when the two-column layout gets narrow. */
+@media (max-width: 900px) {
+    .booking-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+}
+
+/* Availability counts beneath each date in the modal picker. */
+.date-button {
+    height: 72px;
+    gap: 4px;
+}
+
+.date-availability {
+    color: var(--accent-strong);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.date-button.is-selected .date-availability {
+    color: #fdba74;
+}
+
+.date-availability.is-error {
+    color: var(--danger);
+}
+
+/* Distinguish the current user's own reservations from other bookings. */
+.time-slot.is-mine {
+    border-color: #c4b5fd;
+    background: #f5f3ff;
+}
+
+.time-slot.is-mine .slot-status {
+    color: #6d28d9;
+}
+
+/* Keep clear and confirm actions together at the bottom of the summary panel. */
+.summary-actions {
+    display: grid;
+    grid-template-columns: minmax(76px, 0.7fr) minmax(0, 1.8fr);
+    gap: 10px;
+    margin-top: auto;
+}
+
+.btn-clear-selection {
+    min-height: 56px;
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.btn-clear-selection:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+.btn-clear-selection:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.summary-actions .btn-confirm-booking {
+    min-width: 0;
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .date-list {
+        grid-template-columns: repeat(7, minmax(72px, 1fr));
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+
+    .date-button {
+        height: 68px;
+    }
+
+    .modal-subtitle {
+        font-size: 12px;
+    }
+
+    .slot-picker-heading .section-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .modal-instruction {
+        flex-basis: auto;
+        text-align: left;
     }
 }

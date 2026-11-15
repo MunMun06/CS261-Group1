@@ -11,15 +11,19 @@ const dateMonth = document.querySelector("#date-month");
 const courtDate = document.querySelector("#court-date");
 const bookingModal = document.querySelector("#booking-modal");
 const modalCourtName = document.querySelector("#modal-court-name");
-const modalBookingDate = document.querySelector("#modal-booking-date");
+const slotHeadingDate = document.querySelector("#slot-heading-date");
 const timelineScroll = document.querySelector("#timeline-scroll");
 const timeline = document.querySelector("#time-slots");
 const bookingMessage = document.querySelector("#booking-message");
 const timeSummary = document.querySelector("#time-summary");
+const selectionLimit = document.querySelector("#selection-limit");
 const quotaLabel = document.querySelector("#quota-label");
 const quotaValue = document.querySelector("#quota-value");
 const quotaBar = document.querySelector("#quota-bar");
 const confirmButton = document.querySelector("#confirm-booking");
+const clearButton = document.querySelector("#clear-selection");
+const successBanner = document.querySelector("#success-banner");
+const successMessage = document.querySelector("#success-message");
 
 function toDateKey(date) {
     const year = date.getFullYear();
@@ -40,9 +44,12 @@ let selectedCourt = null;
 let selectedHours = [];
 // From GET /api/courts/{id}/slots for the open court and date.
 let bookedHours = new Set();
+let myBookedHours = new Set();
 let quotaUsed = 0;
 // Bumped on every slot request, so a late answer for another court or date is dropped.
 let slotRequest = 0;
+let previewRequest = 0;
+let dateAvailabilityRequest = 0;
 
 const monthFormatter = new Intl.DateTimeFormat("th-TH", { month: "short" });
 const yearFormatter = new Intl.DateTimeFormat("th-TH", { year: "numeric" });
@@ -66,6 +73,10 @@ function shortDateLabel(key) {
 function longDateLabel(key) {
     const date = fromDateKey(key);
     return `${longWeekdayFormatter.format(date)} ${date.getDate()} ${monthFormatter.format(date)}`;
+}
+
+function updateSlotHeadingDate() {
+    slotHeadingDate.textContent = ` · ${longDateLabel(selectedDate)}`;
 }
 
 // "ต.ค. 2569", or "ต.ค. – พ.ย. 2569" when the 7 days cross a month.
@@ -102,12 +113,75 @@ function renderDateList() {
         number.className = "date-number";
         number.textContent = date.getDate();
 
-        button.append(weekday, number);
+        const availability = document.createElement("span");
+        availability.className = "date-availability";
+        availability.textContent = "—";
+
+        button.append(weekday, number, availability);
         button.addEventListener("click", () => selectDate(key));
         dateList.append(button);
     });
 
     dateMonth.textContent = monthRangeLabel(days[0], days.at(-1));
+}
+
+function renderDateAvailability(key, data) {
+    const button = [...dateList.querySelectorAll(".date-button")]
+        .find((dateButton) => dateButton.dataset.date === key);
+    if (!button) {
+        return;
+    }
+
+    const currentHour = new Date().getHours();
+    const freeHours = data.slots.filter((slot) => {
+        const hour = Number(slot.start.slice(0, 2));
+        return slot.status === "available" && !(key === todayKey && hour <= currentHour);
+    }).length;
+    const availability = button.querySelector(".date-availability");
+    availability.classList.remove("is-error");
+    availability.removeAttribute("title");
+    availability.textContent = `ว่าง ${freeHours} ชม.`;
+    button.setAttribute("aria-busy", "false");
+    button.setAttribute("aria-label", `${longDateLabel(key)} ว่าง ${freeHours} ชั่วโมง`);
+}
+
+async function refreshDateAvailability() {
+    if (selectedCourt === null) {
+        return;
+    }
+
+    const request = ++dateAvailabilityRequest;
+    const courtId = selectedCourt;
+    const buttons = [...dateList.querySelectorAll(".date-button")];
+    buttons.forEach((button) => {
+        const availability = button.querySelector(".date-availability");
+        availability.classList.remove("is-error");
+        availability.removeAttribute("title");
+        availability.textContent = "กำลังโหลด";
+        button.setAttribute("aria-busy", "true");
+        button.setAttribute("aria-label", `${longDateLabel(button.dataset.date)} กำลังโหลดเวลาว่าง`);
+    });
+
+    await Promise.all(buttons.map(async (button) => {
+        const key = button.dataset.date;
+        try {
+            const data = await apiRequest(`/api/courts/${courtId}/slots?date=${key}`);
+            if (request !== dateAvailabilityRequest || selectedCourt !== courtId) {
+                return;
+            }
+            renderDateAvailability(key, data);
+        } catch (error) {
+            if (request !== dateAvailabilityRequest || selectedCourt !== courtId) {
+                return;
+            }
+            const availability = button.querySelector(".date-availability");
+            availability.classList.add("is-error");
+            availability.textContent = "โหลดไม่ได้";
+            availability.title = error.message;
+            button.setAttribute("aria-busy", "false");
+            button.setAttribute("aria-label", `${longDateLabel(key)} โหลดข้อมูลเวลาว่างไม่สำเร็จ`);
+        }
+    }));
 }
 
 function selectDate(key) {
@@ -117,7 +191,91 @@ function selectDate(key) {
         button.classList.toggle("is-selected", isSelected);
         button.setAttribute("aria-pressed", String(isSelected));
     });
-    courtDate.textContent = `${key === todayKey ? "วันนี้ · " : ""}${shortDateLabel(key)}`;
+    const date = fromDateKey(key);
+    const period = key === todayKey ? "ข้อมูลช่วงว่างของวันนี้" : "ข้อมูลช่วงว่างของวันที่เลือก";
+    courtDate.textContent = `${period} · ${shortDateLabel(key)} ${yearFormatter.format(date)}`;
+    document.querySelectorAll(".availability-date-label").forEach((label) => {
+        label.textContent = "กำลังโหลดช่วงเวลาว่าง";
+    });
+    document.querySelectorAll("[data-preview-court]").forEach((preview) => {
+        preview.setAttribute("aria-label", `ช่วงเวลาว่าง ${shortDateLabel(key)}`);
+    });
+    refreshCourtPreviews();
+
+    if (bookingModal.open && selectedCourt !== null) {
+        refreshActiveCourtDate();
+    }
+}
+
+async function refreshCourtPreviews() {
+    const request = ++previewRequest;
+    const date = selectedDate;
+    const previews = [...document.querySelectorAll("[data-preview-court]")];
+    previews.forEach((preview) => {
+        preview.replaceChildren();
+        preview.setAttribute("aria-busy", "true");
+    });
+
+    await Promise.all(previews.map(async (preview) => {
+        const courtId = Number(preview.dataset.previewCourt);
+        try {
+            const data = await apiRequest(`/api/courts/${courtId}/slots?date=${date}`);
+            if (request !== previewRequest) {
+                return;
+            }
+            const booked = new Set(
+                data.slots.filter((slot) => slot.status === "booked").map((slot) => Number(slot.start.slice(0, 2)))
+            );
+            const currentHour = new Date().getHours();
+            const availableCount = openHours.filter((hour) =>
+                !booked.has(hour) && (date !== todayKey || hour > currentHour)
+            ).length;
+            const dateLabel = date === todayKey ? "วันนี้ว่าง" : `${shortDateLabel(date)} ว่าง`;
+            preview.parentElement.querySelector(".availability-date-label").textContent =
+                `${dateLabel} ${availableCount} จาก ${openHours.length} ช่วง`;
+            const scaleLabels = preview.parentElement.querySelectorAll(".availability-scale span");
+            scaleLabels[0].textContent = hourLabel(OPEN_HOUR);
+            scaleLabels[1].textContent = hourLabel(OPEN_HOUR + Math.floor(openHours.length / 2));
+            scaleLabels[2].textContent = hourLabel(CLOSE_HOUR);
+            const fragment = document.createDocumentFragment();
+            openHours.forEach((hour) => {
+                const slot = document.createElement("span");
+                const isPastHour = date === todayKey && hour <= currentHour;
+                const status = booked.has(hour) ? "is-booked" : isPastHour ? "is-past" : "is-free";
+                slot.className = `availability-slot ${status}`;
+                slot.title = `${hourLabel(hour)} – ${hourLabel(hour + 1)} · ${booked.has(hour) ? "จองแล้ว" : isPastHour ? "หมดเวลา" : "ว่าง"}`;
+                slot.setAttribute("aria-label", slot.title);
+                fragment.append(slot);
+            });
+            preview.replaceChildren(fragment);
+            preview.setAttribute("aria-busy", "false");
+        } catch (error) {
+            if (request !== previewRequest) {
+                return;
+            }
+            const message = document.createElement("span");
+            message.className = "availability-error";
+            message.textContent = "โหลดข้อมูลช่วงเวลาว่างไม่สำเร็จ";
+            message.title = error.message;
+            message.setAttribute("role", "alert");
+            preview.replaceChildren(message);
+            preview.parentElement.querySelector(".availability-date-label").textContent =
+                "โหลดข้อมูลช่วงว่างไม่สำเร็จ";
+            preview.setAttribute("aria-busy", "false");
+        }
+    }));
+}
+
+async function refreshActiveCourtDate() {
+    selectedHours = [];
+    bookingMessage.hidden = true;
+    updateSlotHeadingDate();
+    confirmButton.disabled = true;
+    timeline.replaceChildren();
+    if (await loadSlots()) {
+        confirmButton.disabled = false;
+        renderTimeline();
+    }
 }
 
 function usedQuota() {
@@ -132,7 +290,7 @@ function isPast(hour) {
 // Why an hour can't be picked, or null when it's free.
 function unavailableLabel(hour) {
     if (bookedHours.has(hour)) {
-        return "จองแล้ว";
+        return myBookedHours.has(hour) ? "ของคุณ" : "ไม่ว่าง";
     }
     return isPast(hour) ? "หมดเวลา" : null;
 }
@@ -201,8 +359,8 @@ function renderTimeline() {
                 length += 1;
             }
             const slot = document.createElement("div");
-            slot.className = "time-slot is-booked";
-            slot.append(textSpan("slot-status", label), textSpan("slot-range", rangeLabel(hour, length)));
+            slot.className = `time-slot is-booked${myBookedHours.has(hour) ? " is-mine" : ""}`;
+            slot.append(textSpan("slot-range", rangeLabel(hour, length)), textSpan("slot-status", label));
             placeSlot(slot, hour, length);
             index += length;
             continue;
@@ -258,6 +416,7 @@ function groupHours(hours) {
 
 function renderSummary() {
     const ranges = groupHours(selectedHours);
+    selectionLimit.textContent = `เลือกได้รวมไม่เกิน ${MAX_HOURS_PER_DAY} ชม./วัน`;
     timeSummary.replaceChildren(
         ...(ranges.length === 0
             ? ["ยังไม่ได้เลือก"]
@@ -272,6 +431,7 @@ function renderSummary() {
     [...quotaBar.children].forEach((segment, index) => {
         segment.classList.toggle("is-used", index < used);
     });
+    clearButton.disabled = selectedHours.length === 0;
 }
 
 // Any free hour can be picked, next to the others or not, up to the daily quota.
@@ -291,6 +451,12 @@ function unpickHour(hour) {
     renderTimeline();
 }
 
+function clearSelectedHours() {
+    selectedHours = [];
+    bookingMessage.hidden = true;
+    renderTimeline();
+}
+
 // Loads which hours are taken and how much quota is used. Resolves to false if it failed.
 async function loadSlots() {
     const request = ++slotRequest;
@@ -302,7 +468,13 @@ async function loadSlots() {
         bookedHours = new Set(
             data.slots.filter((slot) => slot.status === "booked").map((slot) => Number(slot.start.slice(0, 2)))
         );
+        myBookedHours = new Set(
+            data.slots
+                .filter((slot) => slot.status === "booked" && slot.mine === true)
+                .map((slot) => Number(slot.start.slice(0, 2)))
+        );
         quotaUsed = data.quotaUsed;
+        renderDateAvailability(selectedDate, data);
         return true;
     } catch (error) {
         if (request === slotRequest) {
@@ -316,13 +488,15 @@ async function openBooking(button) {
     selectedCourt = Number(button.dataset.court);
     selectedHours = [];
     bookedHours = new Set();
+    myBookedHours = new Set();
     quotaUsed = 0;
     bookingMessage.hidden = true;
     confirmButton.disabled = true;
     modalCourtName.textContent = button.closest(".court-card").querySelector("h3").textContent;
-    modalBookingDate.textContent = longDateLabel(selectedDate);
+    updateSlotHeadingDate();
     timeline.replaceChildren();
     bookingModal.showModal();
+    refreshDateAvailability();
 
     if (!(await loadSlots())) {
         return;
@@ -342,6 +516,9 @@ async function confirmBooking() {
         return;
     }
 
+    const completedCourtName = modalCourtName.textContent;
+    const completedDate = longDateLabel(selectedDate);
+    const completedRanges = groupHours(selectedHours).map(({ start, length }) => rangeLabel(start, length));
     confirmButton.disabled = true;
     bookingMessage.hidden = true;
     let failure = null;
@@ -367,6 +544,10 @@ async function confirmBooking() {
         return;
     }
 
+    successMessage.textContent = `จองสำเร็จแล้ว - ${completedCourtName} · ${completedDate} · ${completedRanges.join(", ")}`;
+    successBanner.hidden = false;
+    refreshDateAvailability();
+    refreshCourtPreviews();
     showBookingMessage("จองสนามสำเร็จเรียบร้อยแล้ว!", "success");
     timeline.querySelectorAll(".time-slot").forEach((slot) => {
         slot.disabled = true;
@@ -385,6 +566,10 @@ bookingModal.addEventListener("click", (event) => {
     }
 });
 confirmButton.addEventListener("click", confirmBooking);
+clearButton.addEventListener("click", clearSelectedHours);
+document.querySelector("#success-dismiss").addEventListener("click", () => {
+    successBanner.hidden = true;
+});
 
 renderDateList();
 selectDate(selectedDate);

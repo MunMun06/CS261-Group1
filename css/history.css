@@ -316,18 +316,30 @@
     font-weight: 700;
 }
 
-.qr-placeholder {
+/* The QR code sits on white with its own quiet zone, so it scans from a phone screen. */
+.qr-box {
     display: flex;
-    width: 220px;
-    height: 220px;
+    width: 240px;
+    height: 240px;
     align-items: center;
     justify-content: center;
-    border: 2px dashed #fdba74;
+    padding: 10px;
+    border: 1px solid var(--line);
     border-radius: 20px;
-    background: var(--accent-soft);
-    color: #9a3412;
+    background: #fff;
+}
+
+.qr-image {
+    display: block;
+    width: 220px;
+    height: 220px;
+    image-rendering: pixelated;
+}
+
+.qr-status {
+    color: var(--text-muted);
     font-size: 14px;
-    font-weight: 500;
+    text-align: center;
 }
 
 .qr-dialog-code {

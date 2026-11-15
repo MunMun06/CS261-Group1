@@ -188,7 +188,10 @@
 
     <dialog class="qr-dialog" id="qr-dialog" aria-labelledby="qr-dialog-title">
         <h2 class="qr-dialog-title" id="qr-dialog-title">QR Code สำหรับเช็คอิน</h2>
-        <div class="qr-placeholder" role="img" aria-label="ที่วาง QR Code">[QR Code]</div>
+        <div class="qr-box" id="qr-dialog-box">
+            <img class="qr-image" id="qr-dialog-image" alt="" width="220" height="220" hidden>
+            <span class="qr-status" id="qr-dialog-status">กำลังโหลด QR Code</span>
+        </div>
         <p class="qr-dialog-code" id="qr-dialog-code"></p>
         <p class="qr-dialog-hint">แสดง QR Code นี้ที่ประตูสนามเพื่อเช็คอิน<br><span id="qr-dialog-window"></span></p>
         <form method="dialog">

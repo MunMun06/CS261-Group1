@@ -32,6 +32,9 @@ const cancelDialog = document.getElementById("cancel-dialog");
 const cancelDialogBooking = document.getElementById("cancel-dialog-booking");
 const cancelDialogCourt = document.getElementById("cancel-dialog-court");
 const qrDialogWindow = document.getElementById("qr-dialog-window");
+const qrDialogImage = document.getElementById("qr-dialog-image");
+const qrDialogStatus = document.getElementById("qr-dialog-status");
+let qrImageUrl = null;
 
 // Check-in opens this long before the start time and closes this long after it.
 const CHECKIN_WINDOW_MINUTES = 15;
@@ -133,7 +136,35 @@ function createCard(booking) {
     return card;
 }
 
-// QR check-in is not in this sprint: the dialog shows the placeholder and the booking code.
+// The QR code PNG from GET /api/bookings/{code}/qr. The server sends it with no-store, so
+// it is fetched each time and shown from memory.
+async function loadQrImage(booking) {
+    qrDialogImage.hidden = true;
+    qrDialogStatus.hidden = false;
+    qrDialogStatus.textContent = "กำลังโหลด QR Code";
+    try {
+        const response = await fetch(`${API_BASE}/api/bookings/${encodeURIComponent(booking.code)}/qr`, {
+            credentials: "include",
+        });
+        if (!response.ok) {
+            const body = await response.json().catch(() => null);
+            throw new Error(apiErrorMessages[body?.error?.code] ?? "โหลด QR Code ไม่สำเร็จ");
+        }
+        if (qrImageUrl) {
+            URL.revokeObjectURL(qrImageUrl);
+        }
+        qrImageUrl = URL.createObjectURL(await response.blob());
+        qrDialogImage.src = qrImageUrl;
+        qrDialogImage.alt = `QR Code ของการจอง ${booking.code}`;
+        qrDialogImage.hidden = false;
+        qrDialogStatus.hidden = true;
+    } catch (error) {
+        qrDialogStatus.textContent = error.message === "Failed to fetch"
+            ? apiErrorMessages.NETWORK_ERROR
+            : error.message;
+    }
+}
+
 function showQrCode(booking) {
     const start = getStartTime(booking);
     const clock = (minutes) => new Date(start.getTime() + minutes * 60000)
@@ -142,6 +173,7 @@ function showQrCode(booking) {
     qrDialogWindow.textContent =
         `เช็คอินได้ ${clock(-CHECKIN_WINDOW_MINUTES)} – ${clock(CHECKIN_WINDOW_MINUTES)}`;
     qrDialog.showModal();
+    loadQrImage(booking);
 }
 
 function askToCancel(booking) {

@@ -167,6 +167,10 @@ function setUpApproval() {
       goToResult('check-in-failed.html', booking.code, finalStatusErrors[booking.status]);
       return;
     }
+    // A booking typed in by hand is not the one whose QR code was scanned.
+    if (scannedQrFor(booking.code) === null) {
+      forgetScannedQr();
+    }
     currentCode = booking.code;
     fillBooking(booking);
     searchInput.value = '';
@@ -180,10 +184,12 @@ function setUpApproval() {
     }
     // The field reads "ประตู A1"; the API stores the gate name, "A1".
     const gate = gateInput.value.trim().replace(/^ประตู\s*/, '');
+    // Opened from the scan page: send the QR token too, so the server checks the code.
+    const qrToken = scannedQrFor(currentCode);
     try {
       await apiRequest(`/api/staff/bookings/${encodeURIComponent(currentCode)}/checkin`, {
         method: 'POST',
-        body: { gate },
+        body: qrToken ? { gate, qrToken } : { gate },
       });
     } catch (error) {
       if (failureDetails[error.code]) {
@@ -193,10 +199,13 @@ function setUpApproval() {
       }
       return;
     }
+    markScanCheckedIn(currentCode);
+    forgetScannedQr();
     goToResult('check-in-success.html', currentCode);
   }
 
   clearBooking();
+  gateInput.value = `ประตู ${getCheckinGate()}`;
   document.getElementById('btnSearch').addEventListener('click', lookUp);
   searchInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -204,7 +213,15 @@ function setUpApproval() {
     }
   });
   document.getElementById('btnConfirmCheckin').addEventListener('click', confirmCheckin);
-  searchInput.focus();
+
+  // Opened from the scan page or its search box: look the booking up straight away.
+  const code = new URLSearchParams(window.location.search).get('code');
+  if (code) {
+    searchInput.value = code;
+    lookUp();
+  } else {
+    searchInput.focus();
+  }
 }
 
 async function setUpResult() {
@@ -242,7 +259,7 @@ async function setUpResult() {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#btnScanNext').forEach((button) => {
     button.addEventListener('click', () => {
-      window.location.href = 'check-in-approval.html';
+      window.location.href = 'check-in-scan.html';
     });
   });
 

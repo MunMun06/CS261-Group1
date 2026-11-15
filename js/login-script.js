@@ -57,11 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Only a page in this folder, e.g. "history.html?page=2", so a link can't send users elsewhere.
-    function nextPage() {
+    // With no page to go back to, staff start on the QR scan page and members on booking.
+    async function nextPage() {
         const next = new URLSearchParams(window.location.search).get('next') ?? '';
-        return /^[\w-]+\.html(\?[^#]*)?$/.test(next) && !next.startsWith('login')
-            ? next
-            : 'index.html';
+        if (/^[\w-]+\.html(\?[^#]*)?$/.test(next) && !next.startsWith('login')) {
+            return next;
+        }
+        try {
+            const user = await apiRequest('/api/auth/me');
+            return user.role === 'staff' ? 'check-in-scan.html' : 'index.html';
+        } catch {
+            return 'index.html';
+        }
     }
 
     // 3. Login: checks the TU username and password with POST /api/auth/login (js/api.js),
@@ -100,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: { username },
                 });
             }
-            window.location.href = nextPage();
+            window.location.href = await nextPage();
         } catch (error) {
             passwordInput.value = '';
             showError(error.message, error.code === 'INVALID_CREDENTIALS');

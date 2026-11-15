@@ -4,7 +4,7 @@
 const statusBadges = {
   pending: { className: 'badge-warning', label: 'รอเช็คอิน', icon: '<circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />' },
   'checked-in': { className: 'badge-success', label: 'เช็คอินแล้ว', icon: '<path d="M20 6 9 17l-5-5" />' },
-  cancelled: { className: 'badge-danger', label: 'ยกเลิกแล้ว', icon: '<path d="M18 6 6 18M6 6l12 12" />' },
+  cancelled: { className: 'badge-muted', label: 'ยกเลิกแล้ว', icon: '<path d="M18 6 6 18M6 6l12 12" />' },
   'no-show': { className: 'badge-danger', label: 'ไม่มาเช็คอิน', icon: '<path d="M18 6 6 18M6 6l12 12" />' },
 };
 
@@ -49,9 +49,56 @@ function setStatus(status) {
   const badge = document.querySelector('[data-field="status"]');
   const { className, label, icon } = statusBadges[status];
   badge.className = `badge ${className}`;
-  badge.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
-  badge.append(` ${label}`);
+  badge.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
+  badge.append(label);
   badge.hidden = false;
+}
+
+// Check-in opens this long before the start time and closes this long after it.
+const CHECKIN_WINDOW_MINUTES = 15;
+
+function clock(date) {
+  return date.toTimeString().slice(0, 5);
+}
+
+// "23 นาที", or "30 ชม. 22 นาที" when it is an hour or more.
+function duration(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) {
+    return `${rest} นาที`;
+  }
+  return rest ? `${hours} ชม. ${rest} นาที` : `${hours} ชม.`;
+}
+
+// The orange box on the approval page: when check-in is open and how long is left.
+function showCheckinWindow(booking) {
+  const box = document.getElementById('checkinWindow');
+  if (!box) {
+    return;
+  }
+  const [year, month, day] = booking.date.split('-').map(Number);
+  const [hours, minutes] = booking.start.split(':').map(Number);
+  const start = new Date(year, month - 1, day, hours, minutes);
+  const open = new Date(start.getTime() - CHECKIN_WINDOW_MINUTES * 60000);
+  const close = new Date(start.getTime() + CHECKIN_WINDOW_MINUTES * 60000);
+  const now = new Date();
+  const minutesTo = (date) => Math.ceil((date - now) / 60000);
+
+  setField('window', `ช่วงเวลาเช็คอิน ${clock(open)} – ${clock(close)}`);
+  if (now < open) {
+    setField('windowLeft', `เปิดเช็คอินอีก ${duration(minutesTo(open))}`);
+  } else if (now <= close) {
+    setField('windowLeft', `ตอนนี้ ${clock(now)} · เหลืออีก ${duration(minutesTo(close))}`);
+  } else {
+    setField('windowLeft', 'หมดเวลาเช็คอินแล้ว');
+  }
+  setField('windowOpen', clock(open));
+  setField('windowStart', `เริ่ม ${clock(start)}`);
+  setField('windowClose', clock(close));
+  const progress = Math.min(1, Math.max(0, (now - open) / (close - open)));
+  document.getElementById('checkinWindowBar').style.width = `${progress * 100}%`;
+  box.hidden = false;
 }
 
 function fillBooking(booking) {
@@ -62,11 +109,16 @@ function fillBooking(booking) {
   setField('date', formatDate(booking.date));
   setField('time', formatTime(booking));
   setStatus(booking.status);
+  showCheckinWindow(booking);
 }
 
 function clearBooking() {
   ['code', 'name', 'studentId', 'court', 'date', 'time'].forEach((name) => setField(name, '—'));
   document.querySelector('[data-field="status"]').hidden = true;
+  const box = document.getElementById('checkinWindow');
+  if (box) {
+    box.hidden = true;
+  }
 }
 
 function getBooking(code) {

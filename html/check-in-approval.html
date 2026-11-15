@@ -18,8 +18,11 @@
     <header class="site-header">
         <div class="site-header-inner">
             <a class="brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
-                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="40" height="40">
-                <span class="brand-name">TU BASKET BOOKING</span>
+                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="52" height="52">
+                <span class="brand-copy">
+                    <span class="brand-name">TU BASKET BOOKING</span>
+                    <span class="brand-subtitle">คณะวิทยาศาสตร์และเทคโนโลยี · ศูนย์รังสิต</span>
+                </span>
             </a>
 
 
@@ -121,85 +124,90 @@
                     </svg>
                     TU Sports Complex @ Rangsit
                 </span>
-                <span class="drawer-footer-version">TU Court Reservation v1.0 • Thammasat University</span>
+                <span class="drawer-footer-version">TU Basket Booking v1.0 • Thammasat University</span>
             </footer>
         </div>
     </dialog>
 
   <!-- Main Container -->
-  <main class="container">
-    <div class="page-title">
-      <span class="subtitle text-orange">สแกน QR Code แล้ว</span>
-      <h1>ยืนยันการเช็คอิน</h1>
-    </div>
-    <div class="grid-layout">
-      <!-- Cards will be added here -->
-        <section class="card booking-card">
-        <div class="card-header">
-            <div class="booking-id-group">
-            <span class="label">รหัสจอง</span>
-            <h2 class="booking-id" id="bookingId" data-field="code">#TU-69101601</h2>
+    <main class="checkin-page page-container">
+        <div class="checkin-heading">
+            <p class="checkin-eyebrow">สแกน QR Code แล้ว</p>
+            <h1>ยืนยันการเช็คอิน</h1>
+        </div>
+
+        <div class="checkin-layout">
+            <section class="card booking-panel" aria-label="ข้อมูลการจอง">
+                <div class="code-row">
+                    <div>
+                        <span class="code-label">รหัสจอง</span>
+                        <p class="booking-code" id="bookingId" data-field="code">—</p>
+                    </div>
+                    <span class="badge badge-warning" data-field="status">รอเช็คอิน</span>
+                </div>
+                <div class="person-box">
+                    <span class="person-avatar" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" /><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg></span>
+                    <div class="person-text">
+                        <p class="person-name" data-field="name">—</p>
+                        <p class="person-id" data-field="studentId">—</p>
+                    </div>
+                </div>
+                <dl class="info-grid">
+                    <div><dt>สนาม</dt><dd class="is-strong" data-field="court">—</dd></div>
+                    <div><dt>วันที่</dt><dd data-field="date">—</dd></div>
+                    <div><dt>เวลา</dt><dd class="is-strong" data-field="time">—</dd></div>
+                    <div class="is-wide"><dt>สถานที่</dt><dd class="is-muted">คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต</dd></div>
+                </dl>
+                <div class="window-box" id="checkinWindow" hidden>
+                    <div class="window-row">
+                        <strong data-field="window">—</strong>
+                        <span data-field="windowLeft"></span>
+                    </div>
+                    <div class="window-bar" aria-hidden="true"><span id="checkinWindowBar"></span></div>
+                    <div class="window-scale" aria-hidden="true">
+                        <span data-field="windowOpen"></span><span data-field="windowStart"></span><span data-field="windowClose"></span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="checkin-side">
+                <section class="card action-card" aria-labelledby="approve-heading">
+                    <h2 id="approve-heading">อนุมัติการเข้าใช้สนาม</h2>
+                    <div class="form-group">
+                        <label for="checkinPoint">จุดเช็คอิน</label>
+                        <input type="text" id="checkinPoint" value="ประตู A1" class="form-control">
+                    </div>
+                    <p class="checkin-message" id="checkinMessage" role="alert" hidden></p>
+                    <button type="button" class="btn btn-primary" id="btnConfirmCheckin">
+                        <svg width="20" height="20" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M10 3.5 4.5 9 2 6.5" stroke="currentColor" stroke-width="1.4" /></svg>
+                        ยืนยันเช็คอิน
+                    </button>
+                    <button type="button" class="btn btn-dark" id="btnScanNext">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+                        สแกนรายการถัดไป
+                    </button>
+                </section>
+
+                <form class="card search-card" onsubmit="return false">
+                    <label for="searchInput">ค้นหาด้วยรหัสจอง</label>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="เช่น TU-69101601" class="form-control">
+                        <button type="button" class="btn btn-outline" id="btnSearch">ค้นหา</button>
+                    </div>
+                    <p class="help-text">ใช้เมื่อสแกน QR Code ไม่ได้</p>
+                </form>
             </div>
-            <span class="badge badge-warning" data-field="status" id="statusBadge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> รอเช็คอิน
+        </div>
+    </main>
+
+    <footer class="site-footer site-footer-compact">
+        <div class="site-footer-inner page-container">
+            <span class="footer-place">
+                <img src="../assets/images/favicon.svg" alt="" width="40" height="40">
+                TU Sports Complex @ Rangsit
             </span>
+            <span class="footer-version">TU Basket Booking v1.0 • Thammasat University</span>
         </div>
-
-        <div class="user-info-box">
-            <div class="avatar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg></div>
-            <div class="user-details">
-            <p class="user-name" data-field="name">[ชื่อ-นามสกุลผู้จอง]</p>
-            <p class="user-id" data-field="studentId">รหัสนักศึกษา [รหัสนักศึกษา]</p>
-            </div>
-        </div>
-
-        <div class="info-grid">
-            <div class="info-item">
-            <span class="info-label">สนาม</span>
-            <span class="info-value" data-field="court">สนามบาสเกตบอล สนามที่ 1</span>
-            </div>
-            <div class="info-item">
-            <span class="info-label">วันที่</span>
-            <span class="info-value" data-field="date">วันศุกร์ 16 ต.ค. 2569</span>
-            </div>
-            <div class="info-item">
-            <span class="info-label">เวลา</span>
-            <span class="info-value" data-field="time">18:00 – 19:00 (1 ชม.)</span>
-            </div>
-            <div class="info-item full-width">
-            <span class="info-label">สถานที่</span>
-            <span class="info-value">คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต</span>
-            </div>
-        </div>
-        </section>
-        <div class="right-column">
-        <!-- Action Form -->
-        <section class="card action-card">
-            <h3>อนุมัติการเข้าใช้สนาม</h3>
-            <div class="form-group">
-            <label for="checkinPoint">จุดเช็คอิน</label>
-            <input type="text" id="checkinPoint" value="ประตู A1" class="form-control">
-            </div>
-            <p class="help-text checkin-message" id="checkinMessage" role="alert" hidden></p>
-            <button type="button" class="btn btn-primary" id="btnConfirmCheckin">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> ยืนยันเช็คอิน
-            </button>
-            <button type="button" class="btn btn-dark" id="btnScanNext">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" /></svg> สแกนรายการถัดไป
-            </button>
-        </section>
-
-        <!-- Search Card -->
-        <section class="card search-card">
-            <h3>ค้นหาด้วยรหัสจอง</h3>
-            <div class="search-box">
-            <input type="text" id="searchInput" placeholder="เช่น TU-69101601" class="form-control">
-            <button type="button" class="btn btn-outline" id="btnSearch">ค้นหา</button>
-            </div>
-            <p class="help-text">ใช้เมื่อสแกน QR Code ไม่ได้</p>
-        </section>
-        </div>
-    </div>
-  </main>
+    </footer>
 </body>
 </html>

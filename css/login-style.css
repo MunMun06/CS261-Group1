@@ -56,7 +56,7 @@
 
 .tabs { display: flex; background: #f1f5f9; padding: 0.25rem; border-radius: 12px; margin-bottom: 2rem; }
 .tab { flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; color: #64748b; }
-.tab.active { background: var(--color-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--color-text-main); }
+.tab.active { background: var(--color-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--color-orange); }
 
 .form-group { margin-bottom: 1.5rem; }
 .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--color-text-main); }

@@ -63,3 +63,20 @@ def test_dev_login_is_off_once_the_tu_key_is_set(
 
     assert response.status_code == 404
     assert SESSION_COOKIE_NAME not in response.cookies
+
+
+def test_me_returns_the_signed_in_user(api_client: TestClient) -> None:
+    response = api_client.get("/api/auth/me")
+
+    assert response.status_code == 200
+    assert response.json()["studentId"] == "A"
+    assert response.json()["role"] == "member"
+    assert {"name", "faculty", "email"} <= response.json().keys()
+
+
+def test_me_needs_a_session(api_client: TestClient) -> None:
+    api_client.cookies.clear()
+    response = api_client.get("/api/auth/me")
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "UNAUTHORIZED"

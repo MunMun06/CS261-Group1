@@ -64,13 +64,17 @@ button {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 16px 32px;
+    /* Full width, so the logo sits 28px from the window's left edge, the same as the
+       hamburger from the right edge (it is pinned under the menu's X).
+       27px top and bottom centres the logo row (42px: the two-line brand text) on the
+       hamburger, whose middle is 48px down (28px + half of 40px): 48 - 42 / 2 = 27px.
+       Right: 28px edge + 40px hamburger + 16px gap. */
+    padding: 27px 84px 27px 28px;
 }
 
 .brand {
     display: flex;
+    min-height: 42px; /* same height with or without the subtitle, so the header is too */
     align-items: center;
     gap: 14px;
 }
@@ -119,6 +123,288 @@ button {
 
 .menu-button:hover {
     background: var(--line);
+}
+
+/* The hamburger sits right under the drawer's X (.drawer-close), so the menu opens and
+   closes without moving the cursor. The drawer is pinned to the window's right edge,
+   so the hamburger is too, instead of following the centred header content.
+   Desktop X: 40px, 28px from the top and right (.drawer-header padding).
+   Mobile X: 32px, 20px from the top and 24px from the right, so its centre is 36px down
+   and 40px in; the 40px hamburger centres on that at top 16px, right 20px. */
+.site-header {
+    position: relative;
+}
+
+.menu-button {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+}
+
+@media (max-width: 768px) {
+    .menu-button {
+        top: 16px;
+        right: 20px;
+    }
+}
+
+/* Desktop navigation, built by menu.js from the drawer: the logo on the left; the page
+   links as a segmented control, then the signed-in user on the right. Clicking the user
+   opens a pop-up with logout. From 1024px it replaces the hamburger; below that the
+   drawer is used. */
+
+.header-nav,
+.header-divider,
+.header-account {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .menu-button {
+        display: none;
+    }
+
+    .site-header-inner {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        gap: 16px;
+        padding: 16px 28px;
+    }
+
+    .brand {
+        min-width: 0;
+        margin-right: auto;
+    }
+
+    .header-nav {
+        display: flex;
+        flex: none;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 14px;
+        background: #f1f5f9;
+    }
+
+    .header-link {
+        display: flex;
+        height: 36px;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px;
+        border-radius: 10px;
+        color: #475569;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: background-color 0.15s, color 0.15s;
+    }
+
+    .header-link svg {
+        flex: none;
+        color: var(--icon-muted);
+    }
+
+    .header-link:hover {
+        background: rgb(255 255 255 / 70%);
+        color: var(--ink);
+    }
+
+    .header-link[aria-current="page"] {
+        background: var(--surface);
+        box-shadow: 0 1px 3px rgb(15 23 42 / 10%), 0 0 0 1px rgb(15 23 42 / 4%);
+        color: var(--accent-strong);
+    }
+
+    .header-link[aria-current="page"] svg {
+        color: var(--accent);
+    }
+
+    .header-divider {
+        display: block;
+        width: 1px;
+        height: 28px;
+        flex: none;
+        background: var(--line);
+    }
+
+    .header-account {
+        position: relative;
+        display: block;
+        min-width: 0;
+    }
+
+    /* The profile: avatar, name and faculty, and a chevron. A button that opens the pop-up. */
+    .header-profile {
+        display: flex;
+        max-width: 100%;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 8px 4px 4px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+
+    .header-profile:hover,
+    .header-profile[aria-expanded="true"] {
+        border-color: var(--line);
+        background: #f8fafc;
+    }
+
+    /* Hidden until /api/auth/me answers, so no empty circle or blank lines flash. */
+    .header-account:not(.is-loaded) .header-profile {
+        visibility: hidden;
+    }
+
+    .header-avatar {
+        display: flex;
+        width: 38px;
+        height: 38px;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #fb923c, var(--accent));
+        box-shadow: 0 0 0 3px var(--accent-soft);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .header-user {
+        display: flex;
+        min-width: 0;
+        max-width: 150px;
+        flex-direction: column;
+        line-height: 1.35;
+    }
+
+    .header-user-name,
+    .header-user-faculty {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .header-user-name {
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .header-user-faculty {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .header-chevron {
+        flex: none;
+        color: var(--icon-muted);
+        transition: transform 0.15s;
+    }
+
+    .header-profile[aria-expanded="true"] .header-chevron {
+        transform: rotate(180deg);
+    }
+
+    /* The pop-up under the profile, right-aligned with it. */
+    .header-popup {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 10px);
+        right: 0;
+        display: flex;
+        width: 280px;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+        box-shadow: 0 12px 32px rgb(15 23 42 / 14%), 0 2px 6px rgb(15 23 42 / 6%);
+        animation: header-popup-in 0.14s ease-out;
+    }
+
+    .header-popup[hidden] {
+        display: none;
+    }
+
+    @keyframes header-popup-in {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+    }
+
+    .header-popup-user {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .header-popup-text {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 2px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .header-popup-name {
+        color: var(--ink);
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .header-popup-faculty,
+    .header-popup-email {
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+
+    .header-logout {
+        display: flex;
+        width: 100%;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        background: var(--surface);
+        color: #dc2626;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+
+    .header-logout:hover {
+        border-color: #fca5a5;
+        background: #fef2f2;
+    }
+
+    .header-link:focus-visible,
+    .header-profile:focus-visible,
+    .header-logout:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .header-user {
+        max-width: 220px;
+    }
 }
 
 /* Menu drawer (opened from the header's hamburger button) */
@@ -361,7 +647,9 @@ button {
     .site-header-inner {
         flex-wrap: nowrap;
         gap: 12px;
-        padding: 14px 20px;
+        /* 16px top and bottom centres the logo on the hamburger (16px from the top).
+           Right side keeps the brand clear of it: 20px edge + 40px button + 12px gap. */
+        padding: 16px 72px 16px 20px;
     }
 
     .brand {

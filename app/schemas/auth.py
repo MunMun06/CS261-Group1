@@ -27,3 +27,10 @@ class LoginResponse(BaseModel):
     student_id: str
     name: str
     faculty: str
+
+
+class CurrentUserResponse(LoginResponse):
+    """The signed-in user, shown in the page header and menu."""
+
+    email: str
+    role: str

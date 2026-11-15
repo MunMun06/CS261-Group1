@@ -7,9 +7,15 @@ from sqlalchemy.orm import Session
 
 from app.core.config import tu_api_application_key
 from app.core.database import get_db
+from app.core.dependencies import get_current_user
 from app.core.session import clear_session_cookie, set_session_cookie
 from app.models import User
-from app.schemas.auth import DevLoginRequest, LoginRequest, LoginResponse
+from app.schemas.auth import (
+    CurrentUserResponse,
+    DevLoginRequest,
+    LoginRequest,
+    LoginResponse,
+)
 from app.services.auth_service import upsert_tu_user, verify_tu_credentials
 from app.services.booking_service import error
 
@@ -170,6 +176,22 @@ def dev_login(
         student_id=user.student_id,
         name=user.name_th,
         faculty=user.faculty,
+    )
+
+
+@router.get(
+    "/me",
+    response_model=CurrentUserResponse,
+    summary="The signed-in user",
+    description="Who the session cookie belongs to. 401 when there is no valid session.",
+)
+def current_user(user: Annotated[User, Depends(get_current_user)]) -> CurrentUserResponse:
+    return CurrentUserResponse(
+        student_id=user.student_id,
+        name=user.name_th,
+        faculty=user.faculty,
+        email=user.email,
+        role=user.role,
     )
 
 

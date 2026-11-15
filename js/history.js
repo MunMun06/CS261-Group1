@@ -147,10 +147,22 @@ function askToCancel(booking) {
     cancelDialog.showModal();
 }
 
-// TODO: cancelling is not in this sprint. When it is, call
-// POST /api/bookings/{code}/cancel here (the API already has it), then loadHistory(currentPage).
-cancelDialog.addEventListener("close", () => {
+// "ยืนยันยกเลิก" closes the dialog with returnValue "confirm"; "ไม่ยกเลิก" or Esc keeps the booking.
+cancelDialog.addEventListener("close", async () => {
+    const booking = bookingToCancel;
     bookingToCancel = null;
+    if (cancelDialog.returnValue !== "confirm" || booking === null) {
+        return;
+    }
+    try {
+        await apiRequest(`/api/bookings/${encodeURIComponent(booking.code)}/cancel`, {
+            method: "POST",
+        });
+    } catch (error) {
+        window.alert(error.message);
+    }
+    // Reload either way: the booking may have changed, e.g. expired, since the page loaded.
+    await loadHistory(currentPage);
 });
 
 // Page numbers to show: first, last, and the neighbours of the current page.

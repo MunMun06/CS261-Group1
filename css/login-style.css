@@ -39,3 +39,9 @@
 .form-control.has-error { border-color: #f87171; color: #dc2626; }
 .form-control.has-error:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
 .text-danger { color: #dc2626; }
+@media (max-width: 992px) {
+  .login-container { flex-direction: column; }
+  .left-panel { width: 100%; padding: 2rem 1.5rem 6rem 1.5rem; }
+  .right-panel { width: 100%; padding: 0; }
+  .login-card { width: 90%; margin: -4rem auto 3rem auto; padding: 2rem 1.5rem; z-index: 10; position: relative; }
+  .hero-text h1 { font-size: 2.2rem; }

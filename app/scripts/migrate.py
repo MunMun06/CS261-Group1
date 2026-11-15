@@ -1,5 +1,14 @@
 from app.core.database import Base, get_engine
-from app.models import Booking, BookingSequence, BookingSlot, Checkin, Court, User
+from app.models import (
+    Booking,
+    BookingSequence,
+    BookingSlot,
+    Checkin,
+    Court,
+    StudentFacultyMembership,
+    StudentFacultySession,
+    User,
+)
 
 
 def migrate_database() -> None:

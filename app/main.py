@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api import bookings_router, courts_router, history_router
+from app.api import bookings_router, courts_router, history_router, sessions_router
 from app.core.config import cors_origins, qr_hmac_secret, seed_enabled
 from app.jobs import sweep_no_shows
 from app.scripts.migrate import migrate_database
@@ -65,6 +65,7 @@ app.add_middleware(
 app.include_router(courts_router)
 app.include_router(bookings_router)
 app.include_router(history_router)
+app.include_router(sessions_router)
 
 # The API also serves the pages, e.g. /html/index.html, so they reach the API from
 # the same origin. The Dockerfile copies these folders into the image.

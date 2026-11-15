@@ -18,6 +18,7 @@ from app.services.booking_service import (
     get_booking_by_code,
     parse_date,
     parse_start,
+    staff_booking_to_dict,
 )
 
 router = APIRouter(tags=["bookings"])
@@ -64,22 +65,7 @@ def staff_get_booking(
 ) -> dict[str, object]:
     expire_no_shows(session, now_thailand())
     session.commit()
-    booking = get_booking_by_code(session, code)
-    result: dict[str, object] = {
-        "id": booking.code,
-        "code": booking.code,
-        "name": booking.user.name_th,
-        "studentId": booking.user.student_id,
-        "court": booking.court.name,
-        "date": booking.booking_date.isoformat(),
-        "start": booking.start_time.strftime("%H:%M"),
-        "end": booking.end_time.strftime("%H:%M"),
-        "status": booking.status,
-    }
-    if booking.checkin is not None:
-        result["checkedInBy"] = f"สแกนประตู {booking.checkin.gate}"
-        result["checkedInAt"] = booking.checkin.checked_in_at.isoformat(timespec="minutes")
-    return result
+    return staff_booking_to_dict(get_booking_by_code(session, code))
 
 
 @router.post("/api/staff/bookings/{code}/checkin", tags=["staff"])

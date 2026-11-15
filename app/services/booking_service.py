@@ -142,6 +142,25 @@ def booking_to_dict(booking: Booking, include_qr: bool = False) -> dict[str, obj
     return result
 
 
+def staff_booking_to_dict(booking: Booking) -> dict[str, object]:
+    """What the staff check-in page shows about a booking, with who booked it."""
+    result: dict[str, object] = {
+        "id": booking.code,
+        "code": booking.code,
+        "name": booking.user.name_th,
+        "studentId": booking.user.student_id,
+        "court": booking.court.name,
+        "date": booking.booking_date.isoformat(),
+        "start": booking.start_time.strftime("%H:%M"),
+        "end": booking.end_time.strftime("%H:%M"),
+        "status": booking.status,
+    }
+    if booking.checkin is not None:
+        result["checkedInBy"] = f"สแกนประตู {booking.checkin.gate}"
+        result["checkedInAt"] = booking.checkin.checked_in_at.isoformat(timespec="minutes")
+    return result
+
+
 def get_booking_by_code(session: Session, code: str) -> Booking:
     booking = session.scalar(select(Booking).where(Booking.code == code))
     if booking is None:

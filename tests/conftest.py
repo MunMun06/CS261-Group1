@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import main
-from app.api import bookings, courts, history
+from app.api import bookings, courts, history, qr
 from app.core.database import Base, get_db
 from app.core.session import SESSION_COOKIE_NAME, create_session_token
 from app.scripts.seed_data import seed_database
@@ -27,6 +27,7 @@ def current_time(monkeypatch: pytest.MonkeyPatch) -> list[datetime]:
     monkeypatch.setattr(courts, "now_thailand", lambda: now[0])
     monkeypatch.setattr(bookings, "now_thailand", lambda: now[0])
     monkeypatch.setattr(history, "now_thailand", lambda: now[0])
+    monkeypatch.setattr(qr, "now_thailand", lambda: now[0])
     return now
 
 

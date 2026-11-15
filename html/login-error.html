@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เข้าสู่ระบบ - TU BASKET BOOKING</title>
+  <title>เข้าสู่ระบบไม่สำเร็จ - TU BASKET BOOKING</title>
   <link rel="stylesheet" href="../css/login-style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -29,6 +29,7 @@
       </div>
       <div class="footer-text">TU Sports Complex @ Rangsit • เปิด 08:00 – 19:00</div>
     </div>
+    
     <!-- Right Panel -->
     <div class="right-panel">
       <div class="login-card">
@@ -39,17 +40,17 @@
           <button class="tab active">นักศึกษา / บุคลากร</button>
           <button class="tab">เจ้าหน้าที่สนาม</button>
         </div>
+
+        <!-- ย้ายกล่องแจ้งเตือนมาไว้ตรงนี้ ตามแบบ Figma -->
         <div class="alert alert-danger">
           <i class="fa-solid fa-circle-exclamation"></i> ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
         </div>
+
         <form id="loginForm">
-          <!-- Form Inputs will go here -->
-           <div class="form-group">
+          <div class="form-group">
             <label>ชื่อผู้ใช้ TU หรือรหัสนักศึกษา</label>
-            <input type="text" class="form-control" placeholder="เช่น 6409xxxxxx" id="username">
+            <!-- ลบ input ที่เกินออก เหลือแค่ช่องที่มีคลาส has-error และมีข้อมูลที่กรอกค้างไว้ -->
             <input type="text" class="form-control has-error" value="6409612345" id="username">
-            <!-- ... และ ... -->
-            <input type="password" class="form-control has-error" placeholder="รหัสผ่านบัญชี TU" id="passwordField">
           </div>
 
           <div class="form-group">
@@ -58,7 +59,8 @@
               <a href="#" class="forgot-link">ลืมรหัสผ่าน?</a>
             </div>
             <div class="password-input">
-              <input type="password" class="form-control" placeholder="รหัสผ่านบัญชี TU" id="passwordField">
+              <!-- เพิ่มคลาส has-error ให้ช่องรหัสผ่านด้วย -->
+              <input type="password" class="form-control has-error" placeholder="รหัสผ่านบัญชี TU" id="passwordField">
               <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
             </div>
           </div>

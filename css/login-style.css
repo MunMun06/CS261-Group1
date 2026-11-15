@@ -6,10 +6,27 @@
   --color-text-main: #1e293b;
   --color-border: #e2e8f0;
 }
+
+/* แก้ไขจาก - เป็น * เพื่อให้ Reset CSS ทำงาน */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
 
 .login-container { display: flex; min-height: 100vh; background-color: var(--color-bg-right); }
-.left-panel { width: 45%; background-color: var(--color-dark); color: var(--color-white); padding: 4rem; display: flex; flex-direction: column; justify-content: space-between; }
+
+/* เพิ่มรูปลายเส้นพื้นหลัง */
+.left-panel { 
+  width: 45%; 
+  background-color: var(--color-dark); 
+  color: var(--color-white); 
+  padding: 4rem; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between; 
+  background-image: url('../assets/court-bg.png'); /* ถ้ามีรูปนำมาใส่ path นี้ได้เลย */
+  background-size: cover;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+}
+
 .right-panel { width: 55%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 2rem; }
 .brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
 .logo-icon { font-size: 2rem; color: var(--color-orange); }
@@ -22,27 +39,62 @@
 .features { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem; }
 .features li { display: flex; align-items: center; gap: 1rem; font-size: 1rem; color: #cbd5e1; }
 .icon-box { width: 40px; height: 40px; background-color: rgba(217, 74, 8, 0.1); color: var(--color-orange); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.login-card { background: var(--color-white); width: 100%; max-width: 480px; padding: 3rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+
+/* ปรับความกว้างและเงาของการ์ดให้เหมือนแบบ */
+.login-card { 
+  background: var(--color-white); 
+  width: 100%; 
+  max-width: 440px; 
+  padding: 3rem; 
+  border-radius: 24px; 
+  box-shadow: 0 20px 50px rgba(0,0,0,0.08); 
+}
+
+/* จัดการฟอนต์ส่วนหัวการ์ด (อ้างอิงจาก HTML ที่คุณส่งมา) */
+.card-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--color-text-main); }
+.subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+
 .tabs { display: flex; background: #f1f5f9; padding: 0.25rem; border-radius: 12px; margin-bottom: 2rem; }
-.tab { flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.tab.active { background: var(--color-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.tab { flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; color: #64748b; }
+.tab.active { background: var(--color-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--color-text-main); }
 
 .form-group { margin-bottom: 1.5rem; }
-.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
-.form-control { width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--color-border); border-radius: 10px; outline: none; }
-.password-input { position: relative; }
-.toggle-password { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); cursor: pointer; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--color-text-main); }
 
-.btn-submit { width: 100%; background-color: var(--color-orange); color: white; border: none; padding: 1rem; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 1rem; }
-.warning-box { margin-top: 1.5rem; padding: 1rem; background-color: #fff7ed; border-radius: 12px; font-size: 0.85rem; color: #9a3412; }
-.alert-danger { padding: 1rem; background-color: #fef2f2; color: #dc2626; border-radius: 10px; border: 1px solid #fecaca; margin-bottom: 1.5rem; font-weight: 600; }
+/* จัดการ 'ลืมรหัสผ่าน?' ให้อยู่ชิดขวา */
+.label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.label-row label { margin-bottom: 0; }
+.forgot-link { font-size: 0.85rem; color: var(--color-orange); text-decoration: none; font-weight: 600; }
+
+/* ปรับ Padding ช่องกรอกให้กว้างขึ้น */
+.form-control { width: 100%; padding: 0.9rem 1.2rem; border: 1px solid var(--color-border); border-radius: 10px; outline: none; font-size: 0.95rem; transition: border-color 0.2s; }
+.form-control:focus { border-color: var(--color-orange); }
+
+.password-input { position: relative; }
+.toggle-password { position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; }
+
+/* จัดการ Checkbox ให้อยู่บรรทัดเดียวกัน */
+.checkbox-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+.checkbox-group input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--color-orange); cursor: pointer; }
+.checkbox-group label { margin-bottom: 0; font-weight: 500; font-size: 0.9rem; cursor: pointer; color: var(--color-text-main); }
+
+.btn-submit { width: 100%; background-color: var(--color-orange); color: white; border: none; padding: 1rem; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 1rem; transition: background-color 0.2s; }
+.btn-submit:hover { background-color: #b83a04; }
+
+.warning-box { margin-top: 1.5rem; padding: 1rem; background-color: #fff7ed; border-radius: 12px; font-size: 0.85rem; color: #9a3412; display: flex; gap: 0.5rem; align-items: flex-start; line-height: 1.4; }
+.alert-danger { padding: 1rem; background-color: #fef2f2; color: #dc2626; border-radius: 10px; border: 1px solid #fecaca; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
 .form-control.has-error { border-color: #f87171; color: #dc2626; }
 .form-control.has-error:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
 .text-danger { color: #dc2626; }
+
+/* จัดตำแหน่ง Footer ขวาล่าง */
+.system-footer { position: absolute; bottom: 2rem; font-size: 0.8rem; color: #64748b; }
+
 @media (max-width: 992px) {
   .login-container { flex-direction: column; }
-  .left-panel { width: 100%; padding: 2rem 1.5rem 6rem 1.5rem; }
-  .right-panel { width: 100%; padding: 0; }
+  .left-panel { width: 100%; padding: 2rem 1.5rem 6rem 1.5rem; background-image: none; }
+  .right-panel { width: 100%; padding: 0; position: static; }
   .login-card { width: 90%; margin: -4rem auto 3rem auto; padding: 2rem 1.5rem; z-index: 10; position: relative; }
   .hero-text h1 { font-size: 2.2rem; }
+  .system-footer { position: static; text-align: center; margin-bottom: 2rem; }
 }

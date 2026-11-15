@@ -16,6 +16,7 @@ const timelineScroll = document.querySelector("#timeline-scroll");
 const timeline = document.querySelector("#time-slots");
 const bookingMessage = document.querySelector("#booking-message");
 const timeSummary = document.querySelector("#time-summary");
+const selectionLimit = document.querySelector("#selection-limit");
 const quotaLabel = document.querySelector("#quota-label");
 const quotaValue = document.querySelector("#quota-value");
 const quotaBar = document.querySelector("#quota-bar");
@@ -194,7 +195,7 @@ function selectDate(key) {
     const period = key === todayKey ? "ข้อมูลช่วงว่างของวันนี้" : "ข้อมูลช่วงว่างของวันที่เลือก";
     courtDate.textContent = `${period} · ${shortDateLabel(key)} ${yearFormatter.format(date)}`;
     document.querySelectorAll(".availability-date-label").forEach((label) => {
-        label.textContent = `ช่วงเวลา ${shortDateLabel(key)}`;
+        label.textContent = "กำลังโหลดช่วงเวลาว่าง";
     });
     document.querySelectorAll("[data-preview-court]").forEach((preview) => {
         preview.setAttribute("aria-label", `ช่วงเวลาว่าง ${shortDateLabel(key)}`);
@@ -225,13 +226,23 @@ async function refreshCourtPreviews() {
             const booked = new Set(
                 data.slots.filter((slot) => slot.status === "booked").map((slot) => Number(slot.start.slice(0, 2)))
             );
+            const currentHour = new Date().getHours();
+            const availableCount = openHours.filter((hour) =>
+                !booked.has(hour) && (date !== todayKey || hour > currentHour)
+            ).length;
+            const dateLabel = date === todayKey ? "วันนี้ว่าง" : `${shortDateLabel(date)} ว่าง`;
+            preview.parentElement.querySelector(".availability-date-label").textContent =
+                `${dateLabel} ${availableCount} จาก ${openHours.length} ช่วง`;
+            const scaleLabels = preview.parentElement.querySelectorAll(".availability-scale span");
+            scaleLabels[0].textContent = hourLabel(OPEN_HOUR);
+            scaleLabels[1].textContent = hourLabel(OPEN_HOUR + Math.floor(openHours.length / 2));
+            scaleLabels[2].textContent = hourLabel(CLOSE_HOUR);
             const fragment = document.createDocumentFragment();
             openHours.forEach((hour) => {
                 const slot = document.createElement("span");
-                const isPastHour = date === todayKey && hour <= new Date().getHours();
+                const isPastHour = date === todayKey && hour <= currentHour;
                 const status = booked.has(hour) ? "is-booked" : isPastHour ? "is-past" : "is-free";
                 slot.className = `availability-slot ${status}`;
-                slot.textContent = String(hour).padStart(2, "0");
                 slot.title = `${hourLabel(hour)} – ${hourLabel(hour + 1)} · ${booked.has(hour) ? "จองแล้ว" : isPastHour ? "หมดเวลา" : "ว่าง"}`;
                 slot.setAttribute("aria-label", slot.title);
                 fragment.append(slot);
@@ -248,6 +259,8 @@ async function refreshCourtPreviews() {
             message.title = error.message;
             message.setAttribute("role", "alert");
             preview.replaceChildren(message);
+            preview.parentElement.querySelector(".availability-date-label").textContent =
+                "โหลดข้อมูลช่วงว่างไม่สำเร็จ";
             preview.setAttribute("aria-busy", "false");
         }
     }));
@@ -403,6 +416,7 @@ function groupHours(hours) {
 
 function renderSummary() {
     const ranges = groupHours(selectedHours);
+    selectionLimit.textContent = `เลือกได้รวมไม่เกิน ${MAX_HOURS_PER_DAY} ชม./วัน`;
     timeSummary.replaceChildren(
         ...(ranges.length === 0
             ? ["ยังไม่ได้เลือก"]

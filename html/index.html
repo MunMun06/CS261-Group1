@@ -212,14 +212,13 @@
                         </p>
                         <div class="availability-preview">
                             <div class="availability-heading">
-                                <span class="availability-date-label">ช่วงเวลาวันนี้</span>
-                                <span class="availability-legends">
-                                    <span class="availability-legend"><i></i> ว่าง</span>
-                                    <span class="availability-legend"><i class="is-booked"></i> จองแล้ว</span>
-                                </span>
+                                <span class="availability-date-label">กำลังโหลดช่วงเวลาว่าง</span>
                             </div>
                             <div class="availability-slots" data-preview-court="1" aria-label="ช่วงเวลาว่างวันนี้"
                                 aria-busy="true"></div>
+                            <div class="availability-scale" aria-hidden="true">
+                                <span>08:00</span><span>13:00</span><span>19:00</span>
+                            </div>
                         </div>
                     </div>
                     <button class="btn-select-court" type="button" data-court="1">
@@ -260,14 +259,13 @@
                         </p>
                         <div class="availability-preview">
                             <div class="availability-heading">
-                                <span class="availability-date-label">ช่วงเวลาวันนี้</span>
-                                <span class="availability-legends">
-                                    <span class="availability-legend"><i></i> ว่าง</span>
-                                    <span class="availability-legend"><i class="is-booked"></i> จองแล้ว</span>
-                                </span>
+                                <span class="availability-date-label">กำลังโหลดช่วงเวลาว่าง</span>
                             </div>
                             <div class="availability-slots" data-preview-court="2" aria-label="ช่วงเวลาว่างวันนี้"
                                 aria-busy="true"></div>
+                            <div class="availability-scale" aria-hidden="true">
+                                <span>08:00</span><span>13:00</span><span>19:00</span>
+                            </div>
                         </div>
                     </div>
                     <button class="btn-select-court" type="button" data-court="2">
@@ -332,7 +330,7 @@
                     <div class="slot-picker-heading">
                         <div class="section-heading-row">
                             <h3 id="slot-heading">เลือกช่วงเวลา<span class="slot-heading-date" id="slot-heading-date"></span></h3>
-                            <p class="modal-instruction">แตะช่วงว่างเพื่อเลือก แตะซ้ำเพื่อยกเลิก เลือกได้รวมไม่เกิน 2 ชม./วัน</p>
+                            <p class="modal-instruction">เลื่อนดูเวลา แตะเพื่อเลือก แตะซ้ำเพื่อเอาออก</p>
                         </div>
                     </div>
                     <div class="timeline-scroll" id="timeline-scroll" tabindex="0" aria-label="ช่วงเวลา 08:00 – 19:00">
@@ -344,6 +342,7 @@
                     <div class="summary-block">
                         <span class="summary-label">เวลาที่เลือก</span>
                         <strong class="summary-value" id="time-summary">ยังไม่ได้เลือก</strong>
+                        <p class="summary-hint" id="selection-limit">เลือกได้รวมไม่เกิน 2 ชม./วัน</p>
                     </div>
                     <div class="quota">
                         <div class="quota-row">

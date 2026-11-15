@@ -332,77 +332,53 @@
 .availability-preview {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 7px;
     margin-top: 2px;
-    padding: 14px 0 2px;
-    border-top: 1px solid #eef0f3;
+    padding: 10px 11px 8px;
+    border-radius: 12px;
+    background: #f8fafc;
 }
 
 .availability-heading {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    color: var(--text);
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.availability-legend {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-muted);
+    color: var(--accent-strong);
     font-size: 11px;
-    font-weight: 400;
-}
-
-.availability-legends {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.availability-legend i {
-    width: 8px;
-    height: 8px;
-    border-radius: 3px;
-    background: #10b981;
-}
-
-.availability-legend i.is-booked {
-    background: #94a3b8;
+    font-weight: 700;
 }
 
 .availability-slots {
     display: grid;
     grid-template-columns: repeat(11, minmax(0, 1fr));
     gap: 4px;
-    min-height: 34px;
+    min-height: 7px;
 }
 
 .availability-slot {
-    display: flex;
+    display: block;
     min-width: 0;
-    height: 32px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 7px;
-    background: #ecfdf5;
-    color: #047857;
-    font-family: var(--font-family);
-    font-size: 9px;
-    font-weight: 600;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #475569;
 }
 
-.availability-slot.is-booked {
-    background: #f1f5f9;
-    color: #94a3b8;
+.availability-slot.is-free {
+    background: var(--accent);
 }
 
+.availability-slot.is-booked,
 .availability-slot.is-past {
-    background: #f8fafc;
-    color: #cbd5e1;
+    background: #475569;
+}
+
+.availability-scale {
+    display: flex;
+    justify-content: space-between;
+    color: #64748b;
+    font-size: 8px;
+    line-height: 1;
 }
 
 .availability-error {
@@ -783,6 +759,13 @@
     gap: 6px;
 }
 
+.summary-hint {
+    margin: -2px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .summary-label,
 .quota-row {
     color: var(--text-muted);
@@ -945,10 +928,6 @@
         gap: 3px;
     }
 
-    .availability-slot {
-        font-size: 9px;
-    }
-
     .booking-rules {
         padding: 18px;
     }
@@ -1070,23 +1049,6 @@
     }
 }
 
-/* Keep the hamburger on the left with clear spacing from the brand. */
-.site-header-inner {
-    justify-content: flex-start;
-    gap: 20px;
-}
-
-.menu-button {
-    order: -1;
-}
-
-/* Align the slide-out menu with the hamburger on the left edge. */
-.menu-drawer {
-    margin: 0 auto 0 0;
-    border-radius: 0 28px 28px 0;
-    box-shadow: 16px 0 36px rgb(15 23 42 / 22%);
-}
-
 /* Use a softer card shadow and a small lift on hover. */
 .court-card {
     border-radius: 16px;
@@ -1097,30 +1059,6 @@
 .court-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 24px rgb(15 23 42 / 11%);
-}
-
-/* Circular status markers make available and booked slots easy to distinguish. */
-.availability-legend i {
-    border-radius: 50%;
-}
-
-.availability-legend i:not(.is-booked) {
-    background: #16a34a;
-}
-
-.availability-legend i.is-booked {
-    background: #94a3b8;
-}
-
-.availability-slot.is-free {
-    background: #dcfce7;
-    box-shadow: inset 0 0 0 1px #86efac;
-    color: #166534;
-}
-
-.availability-slot.is-booked {
-    background: #e2e8f0;
-    color: #475569;
 }
 
 /* Highlight the rules panel with a light surface and university-orange accent. */

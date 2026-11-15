@@ -22,3 +22,16 @@
 .features { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem; }
 .features li { display: flex; align-items: center; gap: 1rem; font-size: 1rem; color: #cbd5e1; }
 .icon-box { width: 40px; height: 40px; background-color: rgba(217, 74, 8, 0.1); color: var(--color-orange); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.login-card { background: var(--color-white); width: 100%; max-width: 480px; padding: 3rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+.tabs { display: flex; background: #f1f5f9; padding: 0.25rem; border-radius: 12px; margin-bottom: 2rem; }
+.tab { flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.tab.active { background: var(--color-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+.form-control { width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--color-border); border-radius: 10px; outline: none; }
+.password-input { position: relative; }
+.toggle-password { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); cursor: pointer; }
+
+.btn-submit { width: 100%; background-color: var(--color-orange); color: white; border: none; padding: 1rem; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 1rem; }
+.warning-box { margin-top: 1.5rem; padding: 1rem; background-color: #fff7ed; border-radius: 12px; font-size: 0.85rem; color: #9a3412; }

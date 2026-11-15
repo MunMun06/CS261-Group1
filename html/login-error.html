@@ -9,7 +9,71 @@
 </head>
 <body>
   <div class="login-container">
-    <!-- เนื้อหาจะถูกเพิ่มที่นี่ -->
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="brand">
+        <i class="fa-solid fa-basketball logo-icon"></i>
+        <div class="brand-text">
+          <h2>TU BASKET BOOKING</h2>
+          <p>คณะวิทยาศาสตร์และเทคโนโลยี • ศูนย์รังสิต</p>
+        </div>
+      </div>
+      
+      <div class="hero-text">
+        <h1>จองสนามบาส<br><span class="text-orange">ได้ในไม่กี่คลิก</span></h1>
+        <ul class="features">
+           <li><div class="icon-box"><i class="fa-regular fa-calendar"></i></div> เลือกวันและเวลาได้ในหน้าต่างเดียว</li>
+           <li><div class="icon-box"><i class="fa-regular fa-clock"></i></div> เห็นช่วงว่างของแต่ละสนามได้ทันที</li>
+           <li><div class="icon-box"><i class="fa-solid fa-qrcode"></i></div> เช็คอินด้วย QR Code ที่ประตูสนาม</li>
+        </ul>
+      </div>
+      <div class="footer-text">TU Sports Complex @ Rangsit • เปิด 08:00 – 19:00</div>
+    </div>
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="login-card">
+        <h2 class="card-title">เข้าสู่ระบบ</h2>
+        <p class="subtitle">ใช้บัญชีมหาวิทยาลัยธรรมศาสตร์ (TU) ของคุณ</p>
+
+        <div class="tabs">
+          <button class="tab active">นักศึกษา / บุคลากร</button>
+          <button class="tab">เจ้าหน้าที่สนาม</button>
+        </div>
+        <div class="alert alert-danger">
+          <i class="fa-solid fa-circle-exclamation"></i> ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+        </div>
+        <form id="loginForm">
+          <!-- Form Inputs will go here -->
+           <div class="form-group">
+            <label>ชื่อผู้ใช้ TU หรือรหัสนักศึกษา</label>
+            <input type="text" class="form-control" placeholder="เช่น 6409xxxxxx" id="username">
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label>รหัสผ่าน</label>
+              <a href="#" class="forgot-link">ลืมรหัสผ่าน?</a>
+            </div>
+            <div class="password-input">
+              <input type="password" class="form-control" placeholder="รหัสผ่านบัญชี TU" id="passwordField">
+              <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe">จดจำฉันไว้ในเครื่องนี้</label>
+          </div>
+
+          <button type="button" class="btn-submit" id="btnLogin">เข้าสู่ระบบ <i class="fa-solid fa-chevron-right"></i></button>
+
+          <div class="warning-box">
+            <i class="fa-solid fa-circle-info"></i> ใช้ได้เฉพาะนักศึกษาและบุคลากร คณะวิทยาศาสตร์และเทคโนโลยี
+          </div>
+        </form>
+      </div>
+      <div class="system-footer">TU Court Reservation v1.0 • Thammasat University</div>
+    </div>
   </div>
   <script src="../js/login-script.js"></script>
 </body>

@@ -21,7 +21,24 @@ const apiErrorMessages = {
     ALREADY_NO_SHOW: "ผู้จองไม่ได้เช็คอินภายในเวลาที่กำหนด",
     CHECKIN_TOO_EARLY: "เช็คอินได้ตั้งแต่ 15 นาทีก่อนเวลาเริ่ม",
     CHECKIN_TOO_LATE: "เลยเวลาเช็คอิน (15 นาทีหลังเวลาเริ่ม) แล้ว",
+    UNAUTHORIZED:"กรุณาเข้าสู่ระบบก่อนใช้งาน",
+    FORBIDDEN: "บัญชีนี้ไม่มีสิทธิ์ใช้งานส่วนของเจ้าหน้าที่",
+    INVALID_CREDENTIALS: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+    TU_API_NOT_CONFIGURED: "ระบบยังไม่ได้ตั้งค่า TU API กรุณาแจ้งผู้ดูแลระบบ",
+    TU_API_UNAVAILABLE: "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง",
+    TU_API_TIMEOUT: "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง",
+    TU_API_ERROR: "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง",
+    TU_API_INVALID_RESPONSE: "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง",
+    TU_API_KEY_UNAUTHORIZED: "ระบบยังตั้งค่า TU API ไม่ถูกต้อง กรุณาแจ้งผู้ดูแลระบบ",
+    TU_API_KEY_FORBIDDEN:"ระบบยังตั้งค่า TU API ไม่ถูกต้อง กรุณาแจ้งผู้ดูแลระบบ",
+    TU_API_REQUEST_ERROR: "ระบบยืนยันตัวตนไม่รับคำขอนี้ กรุณาลองใหม่อีกครั้ง",
 };
+
+// Sends a signed-out user to the login page, which brings them back here afterwards.
+function redirectToLogin() {
+    const here = window.location.pathname.split("/").pop() + window.location.search;
+    window.location.href = `login.html?next=${encodeURIComponent(here)}`;
+}
 
 class ApiError extends Error {
     constructor(code, status) {
@@ -48,7 +65,14 @@ async function apiRequest(path, { method = "GET", body } = {}) {
     }
     const data = await response.json().catch(() => null);
     if (!response.ok) {
-        throw new ApiError(data?.error?.code ?? "HTTP_ERROR", response.status);
+        const code = data?.error?.code ?? "HTTP_ERROR";
+        // No session, or it expired: log in again instead of showing an error.
+        if (code === "UNAUTHORIZED") {
+            redirectToLogin();
+            // Never settles, so the page shows no error while the browser leaves it.
+            return new Promise(() => {});
+        }
+        throw new ApiError(code, response.status);
     }
     return data;
 }

@@ -1,12 +1,17 @@
+import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import tu_api_application_key
 from app.core.database import get_db
 from app.core.session import clear_session_cookie, set_session_cookie
-from app.schemas.auth import LoginRequest, LoginResponse
+from app.models import User
+from app.schemas.auth import DevLoginRequest, LoginRequest, LoginResponse
 from app.services.auth_service import upsert_tu_user, verify_tu_credentials
+from app.services.booking_service import error
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -126,6 +131,40 @@ def login(
     )
     user = upsert_tu_user(session, profile)
     session.commit()
+    set_session_cookie(response, user.student_id)
+    return LoginResponse(
+        student_id=user.student_id,
+        name=user.name_th,
+        faculty=user.faculty,
+    )
+
+
+def dev_login_enabled() -> bool:
+    """Test login works only on a development machine that has no TU API key yet."""
+    return os.getenv("APP_ENV", "development") != "production" and not tu_api_application_key()
+
+
+@router.post(
+    "/dev-login",
+    response_model=LoginResponse,
+    summary="Development only: log in as an existing user without TU",
+    description=(
+        "Starts a session for a user already in the database, e.g. the seeded test "
+        "accounts A, B, C, D (students) and S, S2 (staff), without checking a password. "
+        "Only works when APP_ENV is not production and TU_API_APPLICATION_KEY is not set; "
+        "otherwise it returns 404. Once the TU key is added, use /api/auth/login."
+    ),
+)
+def dev_login(
+    payload: DevLoginRequest,
+    response: Response,
+    session: Annotated[Session, Depends(get_db)],
+) -> LoginResponse:
+    if not dev_login_enabled():
+        raise error(404, "NOT_FOUND", "This API is not available.")
+    user = session.scalar(select(User).where(User.student_id == payload.username.strip()))
+    if user is None:
+        raise error(401, "INVALID_CREDENTIALS", "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
     set_session_cookie(response, user.student_id)
     return LoginResponse(
         student_id=user.student_id,

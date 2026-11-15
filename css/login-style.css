@@ -83,6 +83,8 @@
 
 .warning-box { margin-top: 1.5rem; padding: 1rem; background-color: #fff7ed; border-radius: 12px; font-size: 0.85rem; color: #9a3412; display: flex; gap: 0.5rem; align-items: flex-start; line-height: 1.4; }
 .alert-danger { padding: 1rem; background-color: #fef2f2; color: #dc2626; border-radius: 10px; border: 1px solid #fecaca; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+/* The error box stays hidden until login-script.js shows it. */
+.alert[hidden] { display: none; }
 .form-control.has-error { border-color: #f87171; color: #dc2626; }
 .form-control.has-error:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
 .text-danger { color: #dc2626; }

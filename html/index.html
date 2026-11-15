@@ -20,8 +20,11 @@
     <header class="site-header">
         <div class="site-header-inner">
             <a class="brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
-                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="40" height="40">
-                <span class="brand-name">TU BASKET BOOKING</span>
+                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="52" height="52">
+                <span class="brand-copy">
+                    <span class="brand-name">TU BASKET BOOKING</span>
+                    <span class="brand-subtitle">คณะวิทยาศาสตร์และเทคโนโลยี · ศูนย์รังสิต</span>
+                </span>
             </a>
 
 
@@ -123,25 +126,40 @@
                     </svg>
                     TU Sports Complex @ Rangsit
                 </span>
-                <span class="drawer-footer-version">TU Court Reservation v1.0 • Thammasat University</span>
+                <span class="drawer-footer-version">TU Basket Booking v1.0 • Thammasat University</span>
             </footer>
         </div>
     </dialog>
 
-    <main class="main-content">
-        <section class="date-picker" aria-labelledby="date-heading">
-            <div class="section-heading-row">
-                <h1 id="date-heading">เลือกวันที่</h1>
-                <span class="section-note" id="date-month"></span>
-            </div>
-            <div id="date-list" class="date-list" role="group" aria-label="เลือกวันที่"></div>
+    <main class="main-content page-container">
+        <section class="page-intro" aria-labelledby="page-title">
+            <h1 id="page-title">จองสนามบาสเกตบอล</h1>
+            <p class="page-subtitle">เลือกสนาม แล้วเลือกวันและเวลาในหน้าต่างของสนามนั้น</p>
         </section>
+
+        <div class="success-banner" id="success-banner" role="status" aria-live="polite" hidden>
+            <span class="success-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                    <path d="m3.5 8.5 3 3 6-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+            <span class="success-text">
+                <strong>จองสำเร็จแล้ว</strong>
+                <span class="success-message" id="success-message"></span>
+            </span>
+            <a class="success-history-link" href="history.html">ดูประวัติการจอง</a>
+            <button class="success-dismiss" id="success-dismiss" type="button" aria-label="ปิดข้อความ">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                    <path d="m4.5 4.5 9 9M13.5 4.5l-9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
 
         <div class="booking-layout">
             <aside class="booking-rules" aria-labelledby="booking-rules-heading">
                 <div class="booking-rules-title">
                     <span class="booking-rules-icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+                        <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
                             <circle cx="7" cy="7" r="5.83" stroke="currentColor" stroke-width="1.28" />
                             <path d="M7 9.33V7M7 4.67h.01" stroke="currentColor" stroke-width="1.28" stroke-linecap="round" />
                         </svg>
@@ -149,6 +167,7 @@
                     <h2 id="booking-rules-heading">กฎการจองสนาม</h2>
                 </div>
                 <ul>
+                    <li>เปิด 08:00 – 19:00</li>
                     <li>จองล่วงหน้าได้สูงสุด 7 วัน</li>
                     <li>จำกัดสูงสุดคนละ 2 ชม./วัน</li>
                     <li>ยกเลิกล่วงหน้าอย่างน้อย 1 ชม. ก่อนเวลา</li>
@@ -163,43 +182,59 @@
                 </div>
                 <div class="court-grid">
                     <article class="court-card">
-                        <img class="court-image"
-                            src="https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=900&q=85"
-                            alt="สนามบาสเกตบอล สนามที่ 1" loading="lazy">
+                        <div class="court-image">
+                            <img src="../assets/images/court-1.jpg" alt="ภาพ สนามบาสเกตบอล สนามที่ 1" width="736" height="368" decoding="async">
+                        </div>
                         <div class="court-details">
                             <h3>สนามบาสเกตบอล สนามที่ 1</h3>
                             <p class="court-place">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                                     <path d="M7 12.8S2.9 9.2 2.9 6.1a4.1 4.1 0 0 1 8.2 0c0 3.1-4.1 6.7-4.1 6.7Z" stroke="currentColor" stroke-width="1.17" stroke-linejoin="round" />
                                     <circle cx="7" cy="6.1" r="1.46" stroke="currentColor" stroke-width="1.17" />
                                 </svg>
                                 คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต
                             </p>
+                            <div class="availability-preview">
+                                <span class="availability-date-label">กำลังโหลดช่วงเวลาว่าง</span>
+                                <div class="availability-slots" data-preview-court="1" aria-label="ช่วงเวลาว่างวันนี้"
+                                    aria-busy="true"></div>
+                                <div class="availability-scale" aria-hidden="true">
+                                    <span>08:00</span><span>13:00</span><span>19:00</span>
+                                </div>
+                            </div>
                         </div>
                         <button class="btn-select-court" type="button" data-court="1">
-                            เลือกเวลา
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            เลือกวันและเวลา
+                            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="m6 4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                         </button>
                     </article>
                     <article class="court-card">
-                        <img class="court-image"
-                            src="https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&w=900&q=85"
-                            alt="สนามบาสเกตบอล สนามที่ 2" loading="lazy">
+                        <div class="court-image">
+                            <img src="../assets/images/court-2.jpg" alt="ภาพ สนามบาสเกตบอล สนามที่ 2" width="700" height="420" decoding="async">
+                        </div>
                         <div class="court-details">
                             <h3>สนามบาสเกตบอล สนามที่ 2</h3>
                             <p class="court-place">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                                     <path d="M7 12.8S2.9 9.2 2.9 6.1a4.1 4.1 0 0 1 8.2 0c0 3.1-4.1 6.7-4.1 6.7Z" stroke="currentColor" stroke-width="1.17" stroke-linejoin="round" />
                                     <circle cx="7" cy="6.1" r="1.46" stroke="currentColor" stroke-width="1.17" />
                                 </svg>
                                 คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต
                             </p>
+                            <div class="availability-preview">
+                                <span class="availability-date-label">กำลังโหลดช่วงเวลาว่าง</span>
+                                <div class="availability-slots" data-preview-court="2" aria-label="ช่วงเวลาว่างวันนี้"
+                                    aria-busy="true"></div>
+                                <div class="availability-scale" aria-hidden="true">
+                                    <span>08:00</span><span>13:00</span><span>19:00</span>
+                                </div>
+                            </div>
                         </div>
                         <button class="btn-select-court" type="button" data-court="2">
-                            เลือกเวลา
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            เลือกวันและเวลา
+                            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                                 <path d="m6 4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                         </button>
@@ -209,15 +244,52 @@
         </div>
     </main>
 
+    <footer class="site-footer">
+        <div class="site-footer-inner page-container">
+            <div class="footer-about">
+                <a class="footer-brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
+                    <img src="../assets/images/favicon.svg" alt="" width="40" height="40">
+                    <span>TU BASKET BOOKING</span>
+                </a>
+                <p>ระบบจองสนามบาสเกตบอล คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</p>
+            </div>
+            <nav class="footer-links" aria-label="ลิงก์ท้ายหน้า">
+                <h2>เมนู</h2>
+                <a href="index.html">จองสนาม</a>
+                <a href="history.html">ประวัติการจอง</a>
+            </nav>
+            <div class="footer-location">
+                <h2>สนาม</h2>
+                <span class="footer-item">
+                    <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M7 12.8S2.9 9.2 2.9 6.1a4.1 4.1 0 0 1 8.2 0c0 3.1-4.1 6.7-4.1 6.7Z" stroke="currentColor" stroke-width="1.17" stroke-linejoin="round" />
+                        <circle cx="7" cy="6.1" r="1.46" stroke="currentColor" stroke-width="1.17" />
+                    </svg>
+                    TU Sports Complex @ Rangsit
+                </span>
+                <span class="footer-item">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M8 5.33V8l2 2M14 8A6 6 0 1 1 2 8a6 6 0 0 1 12 0Z" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    เปิด 08:00 – 19:00
+                </span>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner page-container">
+                <span>TU Basket Booking v1.0 • Thammasat University</span>
+                <span>CS261 · กลุ่ม 1</span>
+            </div>
+        </div>
+    </footer>
+
     <dialog class="booking-modal" id="booking-modal" aria-labelledby="modal-court-name">
         <header class="booking-modal-header">
-            <div>
+            <div class="modal-title">
                 <h2 class="modal-court-name" id="modal-court-name"></h2>
-                <p class="modal-date">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                        <path d="M3.5 2.67h7c.8 0 1.46.65 1.46 1.45v6.13c0 .8-.65 1.46-1.46 1.46h-7c-.8 0-1.46-.65-1.46-1.46V4.12c0-.8.65-1.45 1.46-1.45ZM2.04 5.58h9.92M4.67 1.5v2.33M9.33 1.5v2.33" stroke="currentColor" stroke-width="1.17" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <span id="modal-booking-date"></span>
+                <p class="modal-subtitle">
+                    <span class="modal-subtitle-wide">คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต · เปิด 08:00 – 19:00</span>
+                    <span class="modal-subtitle-narrow">เปิด 08:00 – 19:00 · เลือกได้รวมไม่เกิน 2 ชม./วัน</span>
                 </p>
             </div>
             <button class="modal-close" id="modal-close" type="button" aria-label="ปิด">
@@ -228,36 +300,55 @@
         </header>
 
         <div class="booking-modal-body">
-            <section class="slot-picker" aria-labelledby="slot-heading">
-                <div class="slot-picker-heading">
-                    <div class="section-heading-row">
-                        <h3 id="slot-heading">เลือกช่วงเวลา</h3>
-                        <span class="section-note">เปิด 08:00 – 19:00</span>
-                    </div>
-                    <p class="modal-instruction">แตะช่วงว่างเพื่อเลือก แตะซ้ำเพื่อยกเลิก เลือกได้รวมไม่เกิน 2 ชม./วัน</p>
+            <section class="date-picker" aria-labelledby="date-heading">
+                <div class="section-heading-row">
+                    <h3 id="date-heading">เลือกวัน</h3>
+                    <span class="section-note" id="date-month"></span>
                 </div>
-                <div class="timeline-scroll" id="timeline-scroll" tabindex="0" aria-label="ช่วงเวลา 08:00 – 19:00">
-                    <div class="timeline" id="time-slots" role="group" aria-label="เลือกช่วงเวลา"></div>
-                </div>
+                <div id="date-list" class="date-list" role="group" aria-label="วันที่"></div>
             </section>
 
-            <aside class="time-summary" aria-label="เวลาที่เลือก">
-                <div class="summary-block">
-                    <span class="summary-label">เวลาที่เลือก</span>
-                    <strong class="summary-value" id="time-summary">ยังไม่ได้เลือก</strong>
-                </div>
-                <div class="quota">
-                    <div class="quota-row">
-                        <span id="quota-label">ใช้โควตาวันนี้</span>
-                        <strong id="quota-value">0/2 ชม.</strong>
+            <div class="booking-time-layout">
+                <section class="slot-picker" aria-labelledby="slot-heading">
+                    <div class="section-heading-row">
+                        <h3 id="slot-heading">เลือกช่วงเวลา<span class="slot-heading-date" id="slot-heading-date"></span></h3>
+                        <p class="modal-instruction">เลื่อนดูเวลา · แตะเพื่อเลือก แตะซ้ำเพื่อเอาออก</p>
                     </div>
-                    <div class="quota-bar" id="quota-bar" aria-hidden="true"><span></span><span></span></div>
-                </div>
-                <p class="booking-message" id="booking-message" role="alert" hidden></p>
-                <button class="btn-confirm-booking" id="confirm-booking" type="button">ยืนยันการจอง</button>
-            </aside>
+                    <div class="timeline-scroll" id="timeline-scroll" tabindex="0"
+                        aria-label="ช่วงเวลา 08:00 – 19:00 เลื่อนขึ้นลงเพื่อดูเวลาอื่น">
+                        <div class="timeline" id="time-slots" role="group" aria-label="ช่วงเวลา"></div>
+                    </div>
+                    <div class="slot-legend" aria-label="ความหมายของสี">
+                        <span><span class="legend-swatch is-free" aria-hidden="true"></span>ว่าง</span>
+                        <span><span class="legend-swatch is-selected" aria-hidden="true"></span>ที่เลือก</span>
+                        <span><span class="legend-swatch is-taken" aria-hidden="true"></span>ไม่ว่าง</span>
+                    </div>
+                    <p class="slot-hint">แตะช่วงว่างเพื่อเลือก แตะซ้ำเพื่อเอาออก</p>
+                </section>
+
+                <aside class="time-summary" aria-label="เวลาที่เลือก">
+                    <div class="summary-block">
+                        <span class="summary-label">เวลาที่เลือก</span>
+                        <strong class="summary-value is-empty" id="time-summary">ยังไม่ได้เลือก</strong>
+                        <span class="summary-hint" id="selection-limit"></span>
+                    </div>
+                    <div class="quota">
+                        <div class="quota-row">
+                            <span id="quota-label">โควตาวันนี้</span>
+                            <strong id="quota-value">0/2 ชม.</strong>
+                        </div>
+                        <div class="quota-bar" id="quota-bar" aria-hidden="true"><span></span><span></span></div>
+                    </div>
+                    <p class="booking-message" id="booking-message" role="alert" hidden></p>
+                    <div class="summary-actions">
+                        <button class="btn-clear-selection" id="clear-selection" type="button" disabled>ล้าง</button>
+                        <button class="btn-confirm-booking" id="confirm-booking" type="button">ยืนยันการจอง</button>
+                    </div>
+                </aside>
+            </div>
         </div>
     </dialog>
+
 </body>
 
 </html>

@@ -1,100 +1,383 @@
+/* Login page, from the "เข้าสู่ระบบ" design: a dark panel with the brand and headline at
+   the left, the login card on the right. The panels stack on narrow screens. */
+
 :root {
-  --color-dark: #161c2d;
-  --color-orange: #d94a08;
-  --color-white: #ffffff;
-  --color-bg-right: #f8fafc;
-  --color-text-main: #1e293b;
-  --color-border: #e2e8f0;
+    --accent: #ea580c;
+    --accent-strong: #c2410c;
+    --ink: #0f172a;
+    --ink-heading: #1b2130;
+    --text: #334155;
+    --text-muted: #64748b;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
 }
 
-/* แก้ไขจาก - เป็น * เพื่อให้ Reset CSS ทำงาน */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
-
-.login-container { display: flex; min-height: 100vh; background-color: var(--color-bg-right); }
-
-/* เพิ่มรูปลายเส้นพื้นหลัง */
-.left-panel { 
-  width: 45%; 
-  background-color: var(--color-dark); 
-  color: var(--color-white); 
-  padding: 4rem; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: space-between; 
-  background-image: url('../assets/court-bg.png'); /* ถ้ามีรูปนำมาใส่ path นี้ได้เลย */
-  background-size: cover;
-  background-position: bottom center;
-  background-repeat: no-repeat;
+* {
+    box-sizing: border-box;
 }
 
-.right-panel { width: 55%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 2rem; }
-.brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
-.logo-icon { font-size: 2rem; color: var(--color-orange); }
-.brand-text h2 { font-size: 1.25rem; font-weight: 800; }
-.brand-text p { font-size: 0.85rem; color: #94a3b8; }
-
-.hero-text h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; margin-bottom: 2rem; }
-.text-orange { color: var(--color-orange); }
-
-.features { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem; }
-.features li { display: flex; align-items: center; gap: 1rem; font-size: 1rem; color: #cbd5e1; }
-.icon-box { width: 40px; height: 40px; background-color: rgba(217, 74, 8, 0.1); color: var(--color-orange); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-
-/* ปรับความกว้างและเงาของการ์ดให้เหมือนแบบ */
-.login-card { 
-  background: var(--color-white); 
-  width: 100%; 
-  max-width: 440px; 
-  padding: 3rem; 
-  border-radius: 24px; 
-  box-shadow: 0 20px 50px rgba(0,0,0,0.08); 
+[hidden] {
+    display: none !important;
 }
 
-/* จัดการฟอนต์ส่วนหัวการ์ด (อ้างอิงจาก HTML ที่คุณส่งมา) */
-.card-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--color-text-main); }
-.subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+body {
+    margin: 0;
+    background: #f8fafc;
+    color: var(--ink);
+    font-family: "Prompt", system-ui, sans-serif;
+}
 
-.tabs { display: flex; background: #f1f5f9; padding: 0.25rem; border-radius: 12px; margin-bottom: 2rem; }
-.tab { flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; color: #64748b; }
-.tab.active { background: var(--color-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--color-orange); }
+a {
+    color: var(--accent-strong);
+    text-decoration: none;
+}
 
-.form-group { margin-bottom: 1.5rem; }
-.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--color-text-main); }
+a:hover {
+    color: #9a3412;
+}
 
-/* จัดการ 'ลืมรหัสผ่าน?' ให้อยู่ชิดขวา */
-.label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.label-row label { margin-bottom: 0; }
-.forgot-link { font-size: 0.85rem; color: var(--color-orange); text-decoration: none; font-weight: 600; }
+button,
+input {
+    font-family: inherit;
+}
 
-/* ปรับ Padding ช่องกรอกให้กว้างขึ้น */
-.form-control { width: 100%; padding: 0.9rem 1.2rem; border: 1px solid var(--color-border); border-radius: 10px; outline: none; font-size: 0.95rem; transition: border-color 0.2s; }
-.form-control:focus { border-color: var(--color-orange); }
+button {
+    cursor: pointer;
+}
 
-.password-input { position: relative; }
-.toggle-password { position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; }
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #fdba74;
+    outline-offset: 2px;
+}
 
-/* จัดการ Checkbox ให้อยู่บรรทัดเดียวกัน */
-.checkbox-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
-.checkbox-group input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--color-orange); cursor: pointer; }
-.checkbox-group label { margin-bottom: 0; font-weight: 500; font-size: 0.9rem; cursor: pointer; color: var(--color-text-main); }
+.login-container {
+    display: flex;
+    min-height: 100vh;
+    flex-wrap: wrap;
+}
 
-.btn-submit { width: 100%; background-color: var(--color-orange); color: white; border: none; padding: 1rem; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 1rem; transition: background-color 0.2s; }
-.btn-submit:hover { background-color: #b83a04; }
+/* Left: dark panel */
 
-.warning-box { margin-top: 1.5rem; padding: 1rem; background-color: #fff7ed; border-radius: 12px; font-size: 0.85rem; color: #9a3412; display: flex; gap: 0.5rem; align-items: flex-start; line-height: 1.4; }
-.alert-danger { padding: 1rem; background-color: #fef2f2; color: #dc2626; border-radius: 10px; border: 1px solid #fecaca; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-.form-control.has-error { border-color: #f87171; color: #dc2626; }
-.form-control.has-error:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
-.text-danger { color: #dc2626; }
+.left-panel {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex: 1 1 480px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    overflow: hidden;
+    padding: clamp(24px, 4vw, 56px);
+    background: var(--ink-heading);
+    color: #cbd5e1;
+}
 
-/* จัดตำแหน่ง Footer ขวาล่าง */
-.system-footer { position: absolute; bottom: 2rem; font-size: 0.8rem; color: #64748b; }
+.court-lines {
+    position: absolute;
+    right: -120px;
+    bottom: -60px;
+    stroke: #fff;
+    stroke-opacity: 0.07;
+    stroke-width: 3;
+}
 
-@media (max-width: 992px) {
-  .login-container { flex-direction: column; }
-  .left-panel { width: 100%; padding: 2rem 1.5rem 6rem 1.5rem; background-image: none; }
-  .right-panel { width: 100%; padding: 0; position: static; }
-  .login-card { width: 90%; margin: -4rem auto 3rem auto; padding: 2rem 1.5rem; z-index: 10; position: relative; }
-  .hero-text h1 { font-size: 2.2rem; }
-  .system-footer { position: static; text-align: center; margin-bottom: 2rem; }
+.brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-mark {
+    display: flex;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 14px;
+    background: #111827;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+}
+
+.brand-name {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.hero-text {
+    position: relative;
+    display: flex;
+    max-width: 520px;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.hero-text h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(28px, 3.2vw, 44px);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.text-orange {
+    color: #fb923c;
+}
+
+.footer-text {
+    position: relative;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Right: login card */
+
+.right-panel {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 420px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: clamp(24px, 4vw, 56px) 16px;
+}
+
+.login-card {
+    display: flex;
+    width: 100%;
+    max-width: 440px;
+    flex-direction: column;
+    gap: 22px;
+    padding: clamp(22px, 3vw, 36px);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
+}
+
+.card-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-title {
+    margin: 0;
+    color: var(--ink-heading);
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: #f1f5f9;
+}
+
+.tab {
+    min-height: 44px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tab.active {
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 12%);
+    color: var(--accent-strong);
+}
+
+#loginForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.alert svg {
+    flex: 0 0 auto;
+    color: #dc2626;
+}
+
+.alert strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.forgot-link {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    height: 52px;
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.form-control:focus {
+    border-color: #f97316;
+    outline: 3px solid #fed7aa;
+    outline-offset: 0;
+}
+
+.form-control.has-error {
+    border-color: #dc2626;
+}
+
+.field-error {
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.password-input {
+    position: relative;
+}
+
+.password-input .form-control {
+    padding-right: 52px;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.toggle-password.is-shown {
+    color: var(--accent-strong);
+}
+
+.checkbox-group {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.checkbox-group input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.btn-submit {
+    display: flex;
+    min-height: 56px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--accent);
+    box-shadow: 0 8px 20px rgb(234 88 12 / 25%);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: var(--accent-strong);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.warning-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.warning-box svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
+}
+
+.system-footer {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
 }

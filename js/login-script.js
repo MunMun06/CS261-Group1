@@ -1,59 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const togglePassword = document.getElementById('togglePassword');
-  const passwordField = document.getElementById('passwordField');
-  const btnLogin = document.getElementById('btnLogin');
-  const usernameInput = document.getElementById('username');
+    console.log("Login script loaded");
 
-  if (togglePassword && passwordField) {
-    togglePassword.addEventListener('click', function () {
-      const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordField.setAttribute('type', type);
-      this.classList.toggle('fa-eye');
-      this.classList.toggle('fa-eye-slash');
-    });
-  }
-
-  if (btnLogin) {
-    btnLogin.addEventListener('click', (e) => {
-      e.preventDefault();
-      const username = usernameInput ? usernameInput.value.trim() : '';
-      if (username === '6409612345') {
-        window.location.href = 'login-error.html';
-      } else {
-        alert('เข้าสู่ระบบสำเร็จ');
-      }
-    });
-  }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. ระบบสลับ Tab (นักศึกษา/บุคลากร กับ เจ้าหน้าที่สนาม)
+    // 1. Tab Switching Logic
     const tabs = document.querySelectorAll('.tab');
     
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            // ลบคลาส active ออกจากทุก tab
+            // Remove 'active' class from all tabs
             tabs.forEach(t => t.classList.remove('active'));
-            // เพิ่มคลาส active ให้กับ tab ที่ถูกคลิก
+            // Add 'active' class to the clicked tab
             this.classList.add('active');
-            
-            // หมายเหตุ: เนื่องจากองค์ประกอบเหมือนกัน จึงแค่สลับสถานะปุ่ม
-            // แต่ถ้าอนาคตต้องการเปลี่ยนข้อความ Placeholder สามารถดักเงื่อนไข if (this.textContent === '...') ตรงนี้ได้
         });
     });
 
-    // 2. ระบบเปิด/ปิด การมองเห็นรหัสผ่าน (ไอคอนดวงตา)
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordField = document.getElementById('passwordField');
-
-    if (togglePassword && passwordField) {
-        togglePassword.addEventListener('click', function() {
-            // สลับ type ของ input ระหว่าง password กับ text
-            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
+    // 2. Password Visibility Toggle Logic
+    const togglePasswordIcons = document.querySelectorAll('.toggle-password');
+    
+    togglePasswordIcons.forEach(icon => {
+        icon.addEventListener('click', function() {
+            // Find the associated password input field.
+            // Assuming the icon and input are siblings within the same container.
+            const passwordInput = this.parentElement.querySelector('input');
             
-            // สลับไอคอนตาเปิด/ตาปิด
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
+            if (passwordInput && passwordInput.tagName === 'INPUT') {
+                // Toggle input type between 'password' and 'text'
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    // Update icon to eye-slash (assuming FontAwesome classes)
+                    this.classList.remove('fa-eye');
+                    this.classList.add('fa-eye-slash'); 
+                } else {
+                    passwordInput.type = 'password';
+                    // Update icon back to eye (assuming FontAwesome classes)
+                    this.classList.remove('fa-eye-slash');
+                    this.classList.add('fa-eye'); 
+                }
+            }
         });
-    }
+    });
 });

@@ -56,6 +56,9 @@ def test_other_faculty_cannot_book(
         )
         session.commit()
 
+    started = api_client.post(
+        "/api/session/start", headers={"X-Student-Id": student_id}
+    )
     rejected = api_client.post(
         "/api/bookings",
         json=book(1, "2026-10-12", "16:00", 1),
@@ -64,6 +67,7 @@ def test_other_faculty_cannot_book(
     # Nothing was saved, so the same slot is still free for a Science user.
     allowed = api_client.post("/api/bookings", json=book(1, "2026-10-12", "16:00", 1))
 
+    assert started.status_code == 200
     assert rejected.status_code == 403
     assert rejected.json()["error"]["code"] == "FACULTY_NOT_ALLOWED"
     assert allowed.status_code == 201

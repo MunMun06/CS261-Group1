@@ -20,6 +20,8 @@ TZ = ZoneInfo("Asia/Bangkok")
 def current_time(monkeypatch: pytest.MonkeyPatch) -> list[datetime]:
     now = [datetime(2026, 10, 10, 10, 0, tzinfo=TZ)]
     monkeypatch.setenv("QR_HMAC_SECRET", "test-only-secret")
+    monkeypatch.setenv("STUDENT_REGISTRY_PROVIDER", "mock")
+    monkeypatch.setenv("STUDENT_REGISTRY_MOCK_DATA", "{}")
     monkeypatch.setattr(courts, "now_thailand", lambda: now[0])
     monkeypatch.setattr(bookings, "now_thailand", lambda: now[0])
     monkeypatch.setattr(history, "now_thailand", lambda: now[0])
@@ -58,6 +60,12 @@ def api_client(
     main.app.dependency_overrides[get_db] = override_get_db
     client = TestClient(main.app)
     try:
+        for student_id in ("A", "B"):
+            response = client.post(
+                "/api/session/start",
+                headers={"X-Student-Id": student_id},
+            )
+            assert response.status_code == 200
         yield client
     finally:
         client.close()

@@ -119,6 +119,14 @@ def shared_db(
 
     main.app.dependency_overrides[get_db] = override_get_db
     try:
+        client = TestClient(main.app)
+        for student_id in ("A", "B"):
+            response = client.post(
+                "/api/session/start",
+                headers={"X-Student-Id": student_id},
+            )
+            assert response.status_code == 200
+        client.close()
         yield factory
     finally:
         main.app.dependency_overrides.clear()

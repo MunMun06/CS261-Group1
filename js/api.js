@@ -21,6 +21,7 @@ const apiErrorMessages = {
     ALREADY_NO_SHOW: "ผู้จองไม่ได้เช็คอินภายในเวลาที่กำหนด",
     CHECKIN_TOO_EARLY: "เช็คอินได้ตั้งแต่ 15 นาทีก่อนเวลาเริ่ม",
     CHECKIN_TOO_LATE: "เลยเวลาเช็คอิน (15 นาทีหลังเวลาเริ่ม) แล้ว",
+    CANCEL_TOO_LATE: "ยกเลิกได้ถึง 1 ชั่วโมงก่อนเวลาเริ่มเท่านั้น",
 };
 
 class ApiError extends Error {

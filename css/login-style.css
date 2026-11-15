@@ -11,3 +11,14 @@
 .login-container { display: flex; min-height: 100vh; background-color: var(--color-bg-right); }
 .left-panel { width: 45%; background-color: var(--color-dark); color: var(--color-white); padding: 4rem; display: flex; flex-direction: column; justify-content: space-between; }
 .right-panel { width: 55%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 2rem; }
+.brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
+.logo-icon { font-size: 2rem; color: var(--color-orange); }
+.brand-text h2 { font-size: 1.25rem; font-weight: 800; }
+.brand-text p { font-size: 0.85rem; color: #94a3b8; }
+
+.hero-text h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; margin-bottom: 2rem; }
+.text-orange { color: var(--color-orange); }
+
+.features { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem; }
+.features li { display: flex; align-items: center; gap: 1rem; font-size: 1rem; color: #cbd5e1; }
+.icon-box { width: 40px; height: 40px; background-color: rgba(217, 74, 8, 0.1); color: var(--color-orange); border-radius: 10px; display: flex; align-items: center; justify-content: center; }

@@ -105,13 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: { username, password },
                 });
             } catch (error) {
-                // No TU API key on this development machine yet, or a seeded staff account
-                // with no password: log in as a seeded test account instead (A, B, C, D, S,
-                // S2). The server refuses this in production or once the TU key is set
-                // (404), and then the original error is shown.
-                const devFallback = role === 'staff'
-                    ? error.code === 'INVALID_CREDENTIALS'
-                    : error.code === 'TU_API_NOT_CONFIGURED';
+                // No TU API key on this development machine yet: log in as a seeded test
+                // student instead (A, B, C, D). The server refuses this in production or
+                // once the TU key is set (404), and then the original error is shown.
+                // Staff always need their password, so the staff tab has no fallback.
+                const devFallback = role !== 'staff' && error.code === 'TU_API_NOT_CONFIGURED';
                 if (!devFallback) throw error;
                 try {
                     await apiRequest('/api/auth/dev-login', {

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.core.session import SESSION_COOKIE_NAME
 from app.models import StaffCredential, User
 from app.scripts import create_staff
+from app.scripts.seed_data import SEED_STAFF_PASSWORD, seed_database
 from app.services import auth_service
 from app.services.staff_auth import hash_password, set_staff_password, verify_password
 
@@ -58,7 +59,7 @@ def test_staff_logs_in_with_password_and_can_use_staff_apis(
     [
         ("S", "wrong-password"),  # wrong password
         ("nobody", STAFF_PASSWORD),  # unknown username
-        ("S2", STAFF_PASSWORD),  # staff account that has no password yet
+        ("S2", STAFF_PASSWORD),  # another staff account's password
         ("A", STAFF_PASSWORD),  # member account
     ],
 )
@@ -82,6 +83,32 @@ def test_staff_login_stops_working_if_the_account_is_no_longer_staff(
         session.commit()
 
     assert staff_login(api_client, "S", STAFF_PASSWORD).status_code == 401
+
+
+@pytest.mark.parametrize("username", ["S", "S2"])
+def test_seeded_staff_log_in_with_the_seed_password_even_with_a_tu_key(
+    api_client: TestClient, monkeypatch: pytest.MonkeyPatch, username: str
+) -> None:
+    # With a TU key the test login is off, so this is the real staff login.
+    monkeypatch.setenv("TU_API_APPLICATION_KEY", "tu-key")
+
+    response = staff_login(api_client, username, SEED_STAFF_PASSWORD)
+
+    assert response.status_code == 200
+    assert api_client.get("/api/auth/me").json()["role"] == "staff"
+    assert staff_login(api_client, username, "wrong-password").status_code == 401
+
+
+def test_seeding_again_keeps_a_password_set_with_create_staff(
+    api_client: TestClient,
+    staff_account: None,
+    db_session_factory: sessionmaker[Session],
+) -> None:
+    with db_session_factory() as session:
+        seed_database(session)
+
+    assert staff_login(api_client, "S", STAFF_PASSWORD).status_code == 200
+    assert staff_login(api_client, "S", SEED_STAFF_PASSWORD).status_code == 401
 
 
 def test_tu_login_cannot_take_over_a_staff_account_with_the_same_username(

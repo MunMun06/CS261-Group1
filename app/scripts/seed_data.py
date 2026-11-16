@@ -1,4 +1,5 @@
 from datetime import date, datetime, time, timedelta
+from functools import cache
 from typing import TypedDict
 
 from sqlalchemy import select
@@ -12,8 +13,21 @@ from app.models import (
     BookingSlot,
     Checkin,
     Court,
+    StaffCredential,
     User,
 )
+from app.services.staff_auth import hash_password
+
+# Password of the seeded staff accounts S and S2 (log in on the staff tab).
+# Seeding runs only in development (AUTO_SEED), so production never gets this password.
+SEED_STAFF_PASSWORD = "staff1234"
+SEED_STAFF_USERNAMES = ("S", "S2")
+
+
+@cache
+def seed_staff_password_hash() -> str:
+    # Hashed once per process: scrypt is slow on purpose, and tests seed many times.
+    return hash_password(SEED_STAFF_PASSWORD)
 
 
 class SeedBooking(TypedDict):
@@ -131,6 +145,17 @@ def seed_database(
         user.student_id: user
         for user in session.scalars(select(User)).all()
     }
+    for username in SEED_STAFF_USERNAMES:
+        staff = users_by_student_id[username]
+        # Keeps a password someone already set with create_staff.
+        if staff.role == "staff" and session.get(StaffCredential, staff.id) is None:
+            session.add(
+                StaffCredential(
+                    user_id=staff.id,
+                    password_hash=seed_staff_password_hash(),
+                    updated_at=now_thailand().replace(tzinfo=None),
+                )
+            )
     for seed in get_seed_bookings(anchor_day):
         booking = session.scalar(
             select(Booking).where(Booking.code == seed["code"])

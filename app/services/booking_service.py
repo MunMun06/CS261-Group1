@@ -142,6 +142,25 @@ def booking_to_dict(booking: Booking, include_qr: bool = False) -> dict[str, obj
     return result
 
 
+def staff_booking_to_dict(booking: Booking) -> dict[str, object]:
+    """What the staff check-in page shows about a booking, with who booked it."""
+    result: dict[str, object] = {
+        "id": booking.code,
+        "code": booking.code,
+        "name": booking.user.name_th,
+        "studentId": booking.user.student_id,
+        "court": booking.court.name,
+        "date": booking.booking_date.isoformat(),
+        "start": booking.start_time.strftime("%H:%M"),
+        "end": booking.end_time.strftime("%H:%M"),
+        "status": booking.status,
+    }
+    if booking.checkin is not None:
+        result["checkedInBy"] = f"สแกนประตู {booking.checkin.gate}"
+        result["checkedInAt"] = booking.checkin.checked_in_at.isoformat(timespec="minutes")
+    return result
+
+
 def get_booking_by_code(session: Session, code: str) -> Booking:
     booking = session.scalar(select(Booking).where(Booking.code == code))
     if booking is None:
@@ -240,6 +259,7 @@ def checkin_booking(
     *,
     gate: str,
     qr_token: str | None,
+    staff: User,
     now: datetime,
 ) -> Booking:
     booking = get_booking_by_code(session, code)
@@ -266,10 +286,7 @@ def checkin_booking(
             "CHECKIN_TOO_LATE",
             f"Check-in closed {minutes} minutes after the booking started.",
         )
-    # Staff login is not built yet, so check-ins are recorded under the first staff user.
-    staff = session.scalar(select(User).where(User.role == "staff").order_by(User.id))
-    if staff is None:
-        raise error(503, "NO_STAFF_USER", "No staff user exists to record the check-in.")
+    # Recorded under the staff member signed in to this session.
     session.add(
         Checkin(
             booking_id=booking.id,

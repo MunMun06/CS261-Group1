@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_staff, get_current_user
 from app.core.time import now_thailand
 from app.models import User
 from app.schemas.booking import BookingCreate, CheckinCreate
@@ -18,6 +18,7 @@ from app.services.booking_service import (
     get_booking_by_code,
     parse_date,
     parse_start,
+    staff_booking_to_dict,
 )
 
 router = APIRouter(tags=["bookings"])
@@ -60,25 +61,11 @@ def cancel_my_booking(
 def staff_get_booking(
     code: str,
     session: Annotated[Session, Depends(get_db)],
+    _staff: Annotated[User, Depends(get_current_staff)],
 ) -> dict[str, object]:
     expire_no_shows(session, now_thailand())
     session.commit()
-    booking = get_booking_by_code(session, code)
-    result: dict[str, object] = {
-        "id": booking.code,
-        "code": booking.code,
-        "name": booking.user.name_th,
-        "studentId": booking.user.student_id,
-        "court": booking.court.name,
-        "date": booking.booking_date.isoformat(),
-        "start": booking.start_time.strftime("%H:%M"),
-        "end": booking.end_time.strftime("%H:%M"),
-        "status": booking.status,
-    }
-    if booking.checkin is not None:
-        result["checkedInBy"] = f"สแกนประตู {booking.checkin.gate}"
-        result["checkedInAt"] = booking.checkin.checked_in_at.isoformat(timespec="minutes")
-    return result
+    return staff_booking_to_dict(get_booking_by_code(session, code))
 
 
 @router.post("/api/staff/bookings/{code}/checkin", tags=["staff"])
@@ -86,6 +73,7 @@ def staff_checkin(
     code: str,
     payload: CheckinCreate,
     session: Annotated[Session, Depends(get_db)],
+    staff: Annotated[User, Depends(get_current_staff)],
 ) -> dict[str, object]:
     expire_no_shows(session, now_thailand())
     session.commit()
@@ -94,6 +82,7 @@ def staff_checkin(
         code,
         gate=payload.gate,
         qr_token=payload.qr_token,
+        staff=staff,
         now=now_thailand(),
     )
     return booking_to_dict(booking)

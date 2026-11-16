@@ -4,8 +4,18 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
+from sqlalchemy import select
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.core.session import SESSION_COOKIE_NAME, create_session_token
+from app.models import Booking
 
 TZ = ZoneInfo("Asia/Bangkok")
+
+
+def as_staff(student_id: str = "S") -> dict[str, str]:
+    """Headers that send a session for a seeded staff account (api_client is member "A")."""
+    return {"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"}
 
 
 def test_booking_and_conflicting_slot_are_enforced(api_client: TestClient) -> None:
@@ -201,19 +211,22 @@ def test_staff_checkin_verifies_qr_and_accepts_window_boundary(
         },
     )
     code = created.json()["code"]
-    lookup = api_client.get(f"/api/staff/bookings/{code}")
+    lookup = api_client.get(f"/api/staff/bookings/{code}", headers=as_staff())
     invalid_qr = api_client.post(
         f"/api/staff/bookings/{code}/checkin",
         json={"gate": "A1", "qrToken": f"{code}." + "0" * 64},
+        headers=as_staff(),
     )
     current_time[0] = datetime(2026, 10, 12, 13, 15, tzinfo=TZ)
     checked_in = api_client.post(
         f"/api/staff/bookings/{code}/checkin",
         json={"gate": "A1", "qrToken": created.json()["qrToken"]},
+        headers=as_staff(),
     )
     duplicate = api_client.post(
         f"/api/staff/bookings/{code}/checkin",
         json={"gate": "A1", "qrToken": created.json()["qrToken"]},
+        headers=as_staff(),
     )
 
     assert lookup.status_code == 200
@@ -224,6 +237,31 @@ def test_staff_checkin_verifies_qr_and_accepts_window_boundary(
     assert checked_in.json()["status"] == "checked-in"
     assert duplicate.status_code == 409
     assert duplicate.json()["error"]["code"] == "ALREADY_CHECKED_IN"
+
+
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [
+        ("GET", "/api/staff/bookings/TU-69101102"),
+        ("POST", "/api/staff/bookings/TU-69101102/checkin"),
+    ],
+)
+def test_member_gets_403_from_staff_apis(
+    api_client: TestClient, method: str, path: str
+) -> None:
+    # api_client is signed in as the member "A".
+    response = api_client.request(method, path, json={"gate": "A1"})
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_staff_apis_need_a_session(api_client: TestClient) -> None:
+    api_client.cookies.clear()
+
+    response = api_client.get("/api/staff/bookings/TU-69101102")
+
+    assert response.status_code == 401
 
 
 def test_staff_checkin_by_booking_code_without_qr(
@@ -242,12 +280,40 @@ def test_staff_checkin_by_booking_code_without_qr(
     )
     code = created.json()["code"]
     checked_in = api_client.post(
-        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}
+        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}, headers=as_staff()
     )
 
     assert checked_in.status_code == 200
     assert checked_in.json()["status"] == "checked-in"
     assert checked_in.json()["checkedInBy"] == "สแกนประตู A1"
+
+
+def test_checkin_records_the_staff_member_from_the_session(
+    api_client: TestClient,
+    current_time: list[datetime],
+    db_session_factory: sessionmaker[Session],
+) -> None:
+    current_time[0] = datetime(2026, 10, 12, 12, 45, tzinfo=TZ)
+    created = api_client.post(
+        "/api/bookings",
+        json={
+            "courtId": 1,
+            "date": "2026-10-12",
+            "start": "13:00",
+            "durationHours": 1,
+        },
+    )
+    code = created.json()["code"]
+    # S2 is not the first staff account, so this shows the session decides who is saved.
+    checked_in = api_client.post(
+        f"/api/staff/bookings/{code}/checkin", json={"gate": "A1"}, headers=as_staff("S2")
+    )
+
+    assert checked_in.status_code == 200
+    with db_session_factory() as session:
+        booking = session.scalar(select(Booking).where(Booking.code == code))
+        assert booking is not None and booking.checkin is not None
+        assert booking.checkin.staff.student_id == "S2"
 
 
 def book_next_hour_and_check_in(
@@ -267,7 +333,9 @@ def book_next_hour_and_check_in(
     )
     assert created.status_code == 201
     return api_client.post(
-        f"/api/staff/bookings/{created.json()['code']}/checkin", json={"gate": "A1"}
+        f"/api/staff/bookings/{created.json()['code']}/checkin",
+        json={"gate": "A1"},
+        headers=as_staff(),
     )
 
 

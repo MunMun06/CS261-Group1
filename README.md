@@ -16,7 +16,8 @@
 
 ส่วนที่ยังไม่ได้ทำใน Sprint นี้
 
-- ยังไม่มีระบบล็อกอิน ทุกคนจะใช้งานในนามผู้ใช้ทดสอบ "A" ไปก่อน
+- มี API สำหรับตรวจสอบ Username/Password ผ่าน TU API และบันทึกข้อมูลผู้ใช้
+- ยังไม่ได้เชื่อมผล login เป็น session กับ API จองสนาม
 - ปุ่ม **แสดง QR Code** และ **ยกเลิกการจอง** มีหน้าตาให้ดูแล้ว แต่ยังไม่ได้เชื่อมกับ backend
 
 ## เทคโนโลยีที่ใช้
@@ -47,15 +48,20 @@ cp .env.example .env
 
 ถ้าใช้ Windows (PowerShell) ให้ใช้ `Copy-Item .env.example .env` แทน
 
-จากนั้นเปิดไฟล์ `.env` แล้วเปลี่ยน 3 ค่านี้เป็นอะไรก็ได้ที่ตั้งเอง
+จากนั้นเปิดไฟล์ `.env` แล้วกำหนดค่ารหัสผ่านและ secrets รวมถึง TU API Application Key
 
 ```text
 DB_PASSWORD=รหัสผ่านฐานข้อมูล
 DB_ROOT_PASSWORD=รหัสผ่าน root ของฐานข้อมูล
 QR_HMAC_SECRET=ข้อความลับยาวๆ อะไรก็ได้
+TU_API_APPLICATION_KEY=Application-Key ที่ได้รับจาก TU API
 ```
 
-ไฟล์ `.env` จะไม่ถูก commit ขึ้น Git อยู่แล้ว ใส่รหัสได้สบายใจ
+เก็บ `TU_API_APPLICATION_KEY` และ secrets ไว้ฝั่ง Backend เท่านั้น อย่าใส่ใน JavaScript
+หรือ commit ค่าใช้งานจริงขึ้น Git
+
+`SESSION_SECRET` ใช้เซ็น session ที่สร้างหลัง login สำเร็จ (ต้องตั้งค่า ไม่อย่างนั้น API จะไม่เริ่มทำงาน)
+และ `SESSION_TIMEOUT_MINUTES` กำหนดว่า session อยู่ได้กี่นาที (ค่าเริ่มต้น 60)
 
 **3. สั่งให้ทุกอย่างทำงาน**
 
@@ -136,7 +142,7 @@ macOS / Linux
 
 ```bash
 source .venv/bin/activate
-DATABASE_URL=sqlite:///./dev.db QR_HMAC_SECRET=dev-secret uvicorn app.main:app --port 8000
+DATABASE_URL=sqlite:///./dev.db QR_HMAC_SECRET=dev-secret TU_API_APPLICATION_KEY=ใส่คีย์ที่ได้รับ uvicorn app.main:app --port 8000
 ```
 
 Windows (PowerShell)
@@ -145,6 +151,7 @@ Windows (PowerShell)
 .\.venv\Scripts\Activate.ps1
 $env:DATABASE_URL = "sqlite:///./dev.db"
 $env:QR_HMAC_SECRET = "dev-secret"
+$env:TU_API_APPLICATION_KEY = "ใส่คีย์ที่ได้รับ"
 uvicorn app.main:app --port 8000
 ```
 
@@ -158,17 +165,82 @@ uvicorn app.main:app --port 8000
 
 ## ข้อมูลตัวอย่างและผู้ใช้ทดสอบ
 
-ตอนเปิด server ระบบจะใส่ข้อมูลตัวอย่างให้เอง (อิงจากวันที่ปัจจุบัน) มีสนาม 2 สนาม กับผู้ใช้ 3 คน
+ตอนเปิด server ระบบจะใส่ข้อมูลตัวอย่างให้เอง (อิงจากวันที่ปัจจุบัน) มีสนาม 2 สนาม
+นักศึกษาจาก 3 คณะ และบัญชีเจ้าหน้าที่ 2 บัญชี
 
 | ผู้ใช้ | บทบาท |
 |---|---|
-| `A` | นักศึกษา (หน้าเว็บใช้คนนี้เป็นค่าเริ่มต้น) |
+| `A` | นักศึกษา |
 | `B` | นักศึกษาอีกคน มีการจองไว้แล้วบางช่วง |
-| `S` | เจ้าหน้าที่ ใช้บันทึกว่าใครเป็นคนเช็คอินให้ |
+| `C` | นักศึกษาคณะวิศวกรรมศาสตร์ |
+| `D` | นักศึกษาคณะศิลปศาสตร์ |
+| `S` | เจ้าหน้าที่ |
+| `S2` | เจ้าหน้าที่ทดสอบอีกบัญชี |
 
-ถ้าเรียก API ตรงๆ แล้วอยากทำในนามผู้ใช้ B ให้ใส่ header `X-Student-Id: B`
+API ที่ต้องรู้ว่าใครใช้งาน (จองสนาม ประวัติ ฯลฯ) ระบุผู้ใช้จาก session ที่ได้หลัง
+`POST /api/auth/login` สำเร็จ ไม่ได้ใช้ header `X-Student-Id` แล้ว
+ถ้ายังไม่ได้ login จะได้ 401 และหน้าเว็บจะพาไปหน้า `html/login.html` ให้ก่อน
+login เสร็จแล้วจะกลับมาหน้าเดิม
+
+### Login ด้วยผู้ใช้ทดสอบ (ระหว่างยังไม่มี TU API Key)
+
+ถ้ายังไม่ได้ใส่ `TU_API_APPLICATION_KEY` ใน `.env` หน้า login จะ login ด้วยบัญชีทดสอบให้แทน
+พิมพ์ชื่อผู้ใช้ตามตารางข้างบน เช่น `A` (นักศึกษา) หรือ `S` (เจ้าหน้าที่) รหัสผ่านใส่อะไรก็ได้
+(เบื้องหลังคือ `POST /api/auth/dev-login`)
+
+- ใช้ได้เฉพาะผู้ใช้ที่มีอยู่ในฐานข้อมูลแล้ว และเฉพาะตอน `APP_ENV` ไม่ใช่ `production`
+- พอใส่ `TU_API_APPLICATION_KEY` แล้ว ระบบจะปิดทางนี้เองและใช้ login ผ่าน TU จริงทันที
+  ไม่ต้องแก้โค้ด
+
+คำสั่ง `python -m app.scripts.migrate` สร้างตารางและใส่ข้อมูลตัวอย่างด้วยเมื่อเปิด
+`AUTO_SEED` (ค่าเริ่มต้นใน development) หากเป็น production หรือปิด `AUTO_SEED`
+คำสั่งนี้จะสร้างเฉพาะตาราง ไม่ใส่บัญชีทดสอบ
 
 ถ้าเป็นเครื่องที่ใช้งานจริง ให้ตั้ง `APP_ENV=production` และ `AUTO_SEED=false` ข้อมูลตัวอย่างจะได้ไม่ถูกใส่เข้าไป
+
+## Login ผ่าน TU API
+
+`POST /api/auth/login` รับ `username` และ `password` แล้วส่งไปตรวจสอบกับ TU API ที่
+`https://restapi.tu.ac.th/api/v1/auth/Ad/verify` โดยส่ง Application Key จาก
+`TU_API_APPLICATION_KEY` ใน header ฝั่ง server เท่านั้น ระบบไม่เก็บรหัสผ่าน TU
+และบันทึกหรืออัปเดตข้อมูลผู้ใช้ที่ตรวจสอบสำเร็จในตาราง `users` โดยใช้ `username`
+จาก response ของ TU เป็นรหัสนักศึกษา/ผู้ใช้
+
+ตัวอย่าง API:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{"username":"รหัส TU","password":"รหัสผ่าน TU"}
+```
+
+เมื่อสำเร็จ API ตอบข้อมูลที่บันทึกแล้ว เช่น
+
+```json
+{
+  "studentId": "6601000001",
+  "name": "นักศึกษาทดสอบ",
+  "faculty": "คณะทดสอบ"
+}
+```
+
+ถ้า TU ปฏิเสธ Username/Password จะตอบ `401 INVALID_CREDENTIALS`; ถ้า TU
+เชื่อมต่อไม่ได้จะตอบ `503 TU_API_UNAVAILABLE` หรือ `504 TU_API_TIMEOUT`
+พร้อมข้อความ “ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนของมหาวิทยาลัยได้ กรุณาลองใหม่อีกครั้งภายหลัง”
+กรณี Application-Key หรือ body ที่ส่งไป TU ผิด จะได้ `TU_API_KEY_UNAUTHORIZED`,
+`TU_API_KEY_FORBIDDEN` หรือ `TU_API_REQUEST_ERROR` เพื่อแยกจาก credentials ของผู้ใช้
+กำหนด `TU_API_TIMEOUT_SECONDS` ได้ตั้งแต่ 5 ถึง 10 วินาที (ค่าเริ่มต้น 10 วินาที)
+API นี้ตรวจสอบ credentials และบันทึกผู้ใช้เท่านั้น ยังไม่ได้สร้าง session หรือเชื่อม
+login เข้ากับ API จองสนาม
+
+สำหรับบัญชีพนักงาน TU ส่ง `organization` แทน `faculty`; เนื่องจากตาราง `users`
+ยังไม่มีช่อง organization ระบบจึงไม่บันทึก organization เป็นคณะ และใช้ค่า
+`มหาวิทยาลัยธรรมศาสตร์` ในช่อง faculty แทน
+
+ขณะนี้เอกสาร TU API ที่ส่งมามีข้อมูลพอสำหรับขั้นตอนนี้แล้ว หากจะต่อยอดในภายหลัง
+ควรยืนยันเพิ่มว่า endpoint นี้อนุญาตทั้งบัญชีนักศึกษาและพนักงานหรือไม่ และค่า
+`username` ใน response เป็นรหัสที่ต้องใช้เป็น key ในระบบอย่างสม่ำเสมอหรือไม่
 
 ## โหมดเดโม: ขยายเวลาเช็คอิน
 
@@ -195,7 +267,7 @@ source .venv/bin/activate      # Windows: .\.venv\Scripts\Activate.ps1
 pytest
 ```
 
-ควรขึ้นว่า `19 passed` เทสต์ครอบคลุมกฎการจอง, โควตา, การจองชนกัน (รวมถึงกรณีสองคนกดจองพร้อมกัน),
+ควรขึ้นว่า `61 passed` เทสต์ครอบคลุมกฎการจอง, โควตา, การจองชนกัน (รวมถึงกรณีสองคนกดจองพร้อมกัน),
 ประวัติการจอง และการเช็คอิน
 
 ## API ที่มีใน Sprint 1
@@ -209,6 +281,9 @@ pytest
 | GET | `/api/staff/bookings/{code}` | เจ้าหน้าที่ดูรายละเอียดการจอง |
 | POST | `/api/staff/bookings/{code}/checkin` | เจ้าหน้าที่เช็คอินให้ |
 | POST | `/api/bookings/{code}/cancel` | ยกเลิกการจอง (มีใน backend แล้ว แต่หน้าเว็บยังไม่ได้ใช้) |
+
+API `/api/staff/*` ใช้ได้เฉพาะบัญชีที่มี role `staff` ผู้ใช้ทั่วไปจะได้ 403
+และการเช็คอินจะบันทึกเจ้าหน้าที่จาก session ที่ login อยู่
 
 รายละเอียดเต็มๆ พร้อมลองยิง API ได้ที่ <http://localhost:8000/docs>
 

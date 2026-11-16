@@ -36,7 +36,16 @@
 
 ## วิธีรันด้วย Docker (แนะนำ)
 
-วิธีนี้ง่ายสุด เพราะได้ทั้ง backend และฐานข้อมูล MySQL มาพร้อมกัน ไม่ต้องลง Python หรือ MySQL เอง
+วิธีนี้ง่ายสุด ไม่ต้องลง Python หรือ MySQL เอง ระบบแยกเป็น 3 container
+
+| Container | หน้าที่ | พอร์ตบนเครื่อง |
+|---|---|---|
+| `frontend` | nginx เสิร์ฟหน้าเว็บ (HTML/CSS/JS/รูป) และส่งต่อ `/api` ไปที่ backend | `3000` |
+| `backend` | FastAPI (API อย่างเดียว ไม่มีไฟล์หน้าเว็บ) | `8000` |
+| `db` | MySQL 8.4 | `3308` |
+
+หน้าเว็บเรียก `/api` ผ่าน origin เดียวกับหน้าเว็บ (พอร์ต 3000) nginx จะส่งต่อไปที่ container `backend`
+cookie ของ session หลัง login จึงใช้ได้โดยไม่ต้องตั้งค่า CORS เพิ่ม
 
 **1. เปิด Docker Desktop** แล้วรอจนขึ้นว่า running
 
@@ -63,6 +72,9 @@ TU_API_APPLICATION_KEY=Application-Key ที่ได้รับจาก TU A
 `SESSION_SECRET` ใช้เซ็น session ที่สร้างหลัง login สำเร็จ (ต้องตั้งค่า ไม่อย่างนั้น API จะไม่เริ่มทำงาน)
 และ `SESSION_TIMEOUT_MINUTES` กำหนดว่า session อยู่ได้กี่นาที (ค่าเริ่มต้น 60)
 
+`STUDENT_REGISTRY_PROVIDER=mock` ใช้คณะจากข้อมูล login ของ TU ในการตรวจสิทธิ์จอง
+(ถ้าไม่ได้ตั้งค่านี้ใน `.env` การจองจะได้ `503 STUDENT_REGISTRY_UNAVAILABLE`)
+
 **3. สั่งให้ทุกอย่างทำงาน**
 
 ```bash
@@ -75,32 +87,34 @@ docker compose up -d --build
 
 | หน้า | ลิงก์ |
 |---|---|
-| หน้าจองสนาม | <http://localhost:8000/html/index.html> |
-| ประวัติการจอง | <http://localhost:8000/html/history.html> |
-| หน้าเช็คอินของเจ้าหน้าที่ | <http://localhost:8000/html/check-in-approval.html> |
-| เอกสาร API | <http://localhost:8000/docs> |
+| หน้าเว็บ (เข้าสู่ระบบ / จองสนาม) | <http://localhost:3000> |
+| ประวัติการจอง | <http://localhost:3000/html/history.html> |
+| หน้าเช็คอินของเจ้าหน้าที่ | <http://localhost:3000/html/check-in-scan.html> |
+| เอกสาร API | <http://localhost:3000/docs> (หรือ <http://localhost:8000/docs>) |
 
 คำสั่งอื่นที่ใช้บ่อย
 
 ```bash
-docker compose logs -f backend   # ดู log ของ backend
-docker compose down              # ปิดระบบ (ข้อมูลการจองยังอยู่)
-docker compose down -v           # ปิดระบบและล้างข้อมูลในฐานข้อมูลทิ้งทั้งหมด
+docker compose ps                 # ดูว่า frontend, backend, db ทำงานอยู่ไหม
+docker compose logs -f backend    # ดู log ของ backend
+docker compose logs -f frontend   # ดู log ของ nginx
+docker compose down               # ปิดระบบ (ข้อมูลการจองยังอยู่)
+docker compose down -v            # ปิดระบบและล้างข้อมูลในฐานข้อมูลทิ้งทั้งหมด
 ```
 
-ถ้าแก้โค้ด (ทั้ง backend และหน้าเว็บ) ต้องรัน `docker compose up -d --build` ใหม่ทุกครั้ง
-เพราะไฟล์ถูกก๊อปไปไว้ใน image แล้ว
+ถ้าแก้โค้ดต้องรัน `docker compose up -d --build` ใหม่ทุกครั้ง เพราะไฟล์ถูกก๊อปไปไว้ใน image แล้ว
+(แก้แค่หน้าเว็บใช้ `docker compose up -d --build frontend` ก็พอ)
 
 อยากเปิดดูข้อมูลในฐานข้อมูลด้วย DBeaver ก็เชื่อมไปที่ `127.0.0.1` พอร์ต `3308`
 ใช้ชื่อผู้ใช้ `booking_user` กับรหัสผ่าน `DB_PASSWORD` ใน `.env`
 
 ### ดูฐานข้อมูลด้วย phpMyAdmin
 
-phpMyAdmin เปิดใช้งานพร้อม Docker Compose อยู่แล้ว เข้าได้ที่ <http://localhost:8080>
-ถ้ายังไม่ได้เปิด service ให้รันคำสั่งนี้จากโฟลเดอร์โปรเจกต์
+phpMyAdmin เป็นเครื่องมือเสริม ไม่ได้เป็นส่วนหนึ่งของระบบ จึงไม่ถูกเปิดพร้อม `docker compose up`
+ถ้าต้องการใช้ ให้รันคำสั่งนี้จากโฟลเดอร์โปรเจกต์ แล้วเข้าที่ <http://localhost:8080>
 
 ```bash
-docker compose up -d db phpmyadmin
+docker compose --profile tools up -d phpmyadmin
 ```
 
 ในหน้าเข้าสู่ระบบ ใช้ข้อมูลดังนี้
@@ -109,7 +123,7 @@ docker compose up -d db phpmyadmin
 |---|---|
 | Server | `db` |
 | Username | `root` |
-| Password | ค่า `DB_PASSWORD` ในไฟล์ `.env` |
+| Password | ค่า `DB_ROOT_PASSWORD` ในไฟล์ `.env` |
 
 หลังเข้าสู่ระบบ เลือกฐานข้อมูล `tu_basket_booking` เพื่อดูตารางและข้อมูลได้
 อย่าเปิดเผย phpMyAdmin ออกสู่อินเทอร์เน็ต เพราะเป็นเครื่องมือจัดการฐานข้อมูลโดยตรง

@@ -1,7 +1,13 @@
 // Shared by every page: calls to the TU Basket Booking API (app/main.py).
 
-// The API serves these pages itself on port 8000; any other dev server talks to it there.
-const API_BASE = window.location.port === "8000" ? "" : "http://localhost:8000";
+// Docker's frontend container and the API on port 8000 both answer /api on the page's
+// own origin. Editor preview servers (VS Code Live Server, Vite, JetBrains) and pages
+// opened as files have no /api, so they call the API on port 8000 instead.
+const PREVIEW_SERVER_PORTS = ["5500", "5173", "63342"];
+const API_BASE =
+    window.location.protocol === "file:" || PREVIEW_SERVER_PORTS.includes(window.location.port)
+        ? "http://localhost:8000"
+        : "";
 
 // Thai text for the API's error codes.
 const apiErrorMessages = {

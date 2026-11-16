@@ -61,8 +61,28 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/html/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Database admin tool, not part of the app; start it with:
+  #   docker compose --profile tools up -d phpmyadmin
   phpmyadmin:
     image: phpmyadmin:latest
+    profiles: ["tools"]
     restart: unless-stopped
     environment:
       PMA_HOST: db

@@ -88,8 +88,9 @@ app.include_router(auth_router)
 app.include_router(qr_router)
 app.include_router(sessions_router)
 
-# The API also serves the pages, e.g. /html/index.html, so they reach the API from
-# the same origin. The Dockerfile copies these folders into the image.
+# When run with uvicorn on your own machine the API also serves the pages, e.g.
+# /html/index.html. In Docker the frontend container serves them instead, since the
+# backend image has no page folders, so nothing is mounted there.
 for folder in FRONTEND_FOLDERS:
     if (PROJECT_ROOT / folder).is_dir():
         app.mount(f"/{folder}", StaticFiles(directory=PROJECT_ROOT / folder), name=folder)

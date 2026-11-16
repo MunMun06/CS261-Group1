@@ -56,19 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
         markField(passwordInput, false);
     }
 
-    // Only a page in this folder, e.g. "history.html?page=2", so a link can't send users elsewhere.
-    // With no page to go back to, staff start on the QR scan page and members on booking.
+    // Where to go after login, by the account's role on the server (not the tab picked):
+    // staff always land on the check-in pages, members on the member pages. A "next" page
+    // is kept only when it belongs to that role, and only a page in this folder, e.g.
+    // "history.html?page=2", so a link can't send users elsewhere.
     async function nextPage() {
         const next = new URLSearchParams(window.location.search).get('next') ?? '';
-        if (/^[\w-]+\.html(\?[^#]*)?$/.test(next) && !next.startsWith('login')) {
-            return next;
-        }
+        const safeNext = /^[\w-]+\.html(\?[^#]*)?$/.test(next) && !next.startsWith('login');
+        const checkInPage = next.startsWith('check-in-');
+        let staff = false;
         try {
-            const user = await apiRequest('/api/auth/me');
-            return user.role === 'staff' ? 'check-in-scan.html' : 'index.html';
+            staff = (await apiRequest('/api/auth/me')).role === 'staff';
         } catch {
-            return 'index.html';
+            // Treated as a member; the member pages ask to log in again if needed.
         }
+        if (staff) {
+            return safeNext && checkInPage ? next : 'check-in-scan.html';
+        }
+        return safeNext && !checkInPage ? next : 'index.html';
     }
 
     // 3. Login: checks the TU username and password with POST /api/auth/login (js/api.js),

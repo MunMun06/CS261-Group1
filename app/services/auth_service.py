@@ -130,8 +130,10 @@ def _is_invalid_credentials_message(message: str) -> bool:
     normalized = " ".join(message.casefold().split())
     if "request body" in normalized:
         return False
+    # TU's real reply for a wrong password is "Users or Password Invalid!".
     return (
         "user or password invalid" in normalized
+        or "users or password invalid" in normalized
         or "username or password invalid" in normalized
     )
 

@@ -160,6 +160,8 @@ def test_login_updates_existing_user_without_creating_duplicate(
     [
         (200, {"status": False, "message": "User or Password Invalid!"}),
         (400, {"status": False, "message": "User or Password Invalid!"}),
+        # The exact reply TU gave for a wrong username or password.
+        (400, {"status": False, "message": "Users or Password Invalid!"}),
     ],
 )
 def test_invalid_tu_credentials_are_rejected(

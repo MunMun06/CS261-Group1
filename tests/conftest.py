@@ -24,6 +24,8 @@ def current_time(monkeypatch: pytest.MonkeyPatch) -> list[datetime]:
     monkeypatch.setenv("SESSION_SECRET", "test-only-session-secret")
     monkeypatch.setenv("TU_API_APPLICATION_KEY", "test-application-key")
     monkeypatch.setenv("TU_API_TIMEOUT_SECONDS", "10")
+    monkeypatch.setenv("STUDENT_REGISTRY_PROVIDER", "mock")
+    monkeypatch.setenv("STUDENT_REGISTRY_MOCK_DATA", "{}")
     monkeypatch.setattr(courts, "now_thailand", lambda: now[0])
     monkeypatch.setattr(bookings, "now_thailand", lambda: now[0])
     monkeypatch.setattr(history, "now_thailand", lambda: now[0])
@@ -65,6 +67,12 @@ def api_client(
     # Requests are made as the seeded user "A" unless a test sends another session.
     client.cookies.set(SESSION_COOKIE_NAME, create_session_token("A"))
     try:
+        for student_id in ("A", "B"):
+            response = client.post(
+                "/api/session/start",
+                headers={"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"},
+            )
+            assert response.status_code == 200
         yield client
     finally:
         client.close()

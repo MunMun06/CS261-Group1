@@ -11,6 +11,10 @@ const apiErrorMessages = {
     BOOKING_BUSY: "มีผู้จองพร้อมกันจำนวนมาก กรุณาลองใหม่อีกครั้ง",
     SLOT_IN_PAST: "ช่วงเวลานี้เริ่มไปแล้ว",
     QUOTA_EXCEEDED: "คุณใช้สิทธิ์จองเต็มโควตา 2 ชั่วโมงต่อวันแล้ว",
+    FACULTY_NOT_ALLOWED: "สิทธิ์จองสนามนี้จำกัดสำหรับนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี",
+    STUDENT_SESSION_REQUIRED: "กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่เพื่ออัปเดตข้อมูลคณะก่อนจอง",
+    STUDENT_SESSION_STALE: "ข้อมูลคณะไม่เป็นปัจจุบัน กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
+    STUDENT_REGISTRY_UNAVAILABLE: "ตรวจสอบข้อมูลคณะไม่ได้ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
     MAX_HOURS: "จองได้ครั้งละ 1–2 ชั่วโมง",
     OUTSIDE_OPEN_HOURS: "สนามเปิด 08:00 – 19:00",
     DATE_OUT_OF_RANGE: "จองล่วงหน้าได้สูงสุด 7 วัน",
@@ -50,9 +54,34 @@ class ApiError extends Error {
     }
 }
 
+let studentSessionPromise;
+
 // apiRequest("/api/history?page=2") or apiRequest("/api/bookings", { method: "POST", body: {...} }).
 // Resolves to the JSON body; rejects with an ApiError.
 async function apiRequest(path, { method = "GET", body } = {}) {
+    if (
+        path === "/api/history" ||
+        path.startsWith("/api/history?") ||
+        path === "/api/bookings" ||
+        /^\/api\/bookings\/[^/]+\/cancel$/.test(path)
+    ) {
+        await ensureStudentSession();
+    }
+    return apiRequestRaw(path, { method, body });
+}
+
+async function ensureStudentSession() {
+    if (!studentSessionPromise) {
+        studentSessionPromise = apiRequestRaw("/api/session/start", { method: "POST" })
+            .catch((error) => {
+                studentSessionPromise = undefined;
+                throw error;
+            });
+    }
+    return studentSessionPromise;
+}
+
+async function apiRequestRaw(path, { method = "GET", body } = {}) {
     let response;
     try {
         response = await fetch(`${API_BASE}${path}`, {

@@ -16,6 +16,7 @@ from app.api import (
     courts_router,
     history_router,
     qr_router,
+    sessions_router,
 )
 from app.core.config import (
     cors_origins,
@@ -85,6 +86,7 @@ app.include_router(bookings_router)
 app.include_router(history_router)
 app.include_router(auth_router)
 app.include_router(qr_router)
+app.include_router(sessions_router)
 
 # The API also serves the pages, e.g. /html/index.html, so they reach the API from
 # the same origin. The Dockerfile copies these folders into the image.

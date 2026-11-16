@@ -8,13 +8,18 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.session import SESSION_COOKIE_NAME, create_session_token
-from app.models import Booking
+from app.models import Booking, User
 
 TZ = ZoneInfo("Asia/Bangkok")
 
 
 def as_staff(student_id: str = "S") -> dict[str, str]:
     """Headers that send a session for a seeded staff account (api_client is member "A")."""
+    return {"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"}
+
+
+def as_user(student_id: str) -> dict[str, str]:
+    """Headers that send a session for the seeded user; api_client is "A" without them."""
     return {"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"}
 
 
@@ -34,6 +39,86 @@ def test_booking_and_conflicting_slot_are_enforced(api_client: TestClient) -> No
     assert created.json()["qrToken"].startswith(created.json()["code"] + ".")
     assert conflict.status_code == 409
     assert conflict.json()["error"]["code"] == "SLOT_TAKEN"
+
+
+def book(court_id: int, day: str, start: str, hours: int) -> dict[str, object]:
+    return {"courtId": court_id, "date": day, "start": start, "durationHours": hours}
+
+
+@pytest.mark.parametrize(
+    ("student_id", "faculty"),
+    [("ENG1", "คณะวิศวกรรมศาสตร์"), ("ART1", "คณะศิลปศาสตร์")],
+)
+def test_other_faculty_cannot_book(
+    api_client: TestClient,
+    db_session_factory: sessionmaker[Session],
+    student_id: str,
+    faculty: str,
+) -> None:
+    # The seeded users are all from Science, so this test adds a user from another faculty.
+    with db_session_factory() as session:
+        session.add(
+            User(
+                student_id=student_id,
+                name_th="ผู้ใช้ต่างคณะ",
+                faculty=faculty,
+                email=f"{student_id.lower()}@example.invalid",
+                role="member",
+            )
+        )
+        session.commit()
+
+    started = api_client.post(
+        "/api/session/start", headers=as_user(student_id)
+    )
+    rejected = api_client.post(
+        "/api/bookings",
+        json=book(1, "2026-10-12", "16:00", 1),
+        headers=as_user(student_id),
+    )
+    # Nothing was saved, so the same slot is still free for a Science user.
+    allowed = api_client.post("/api/bookings", json=book(1, "2026-10-12", "16:00", 1))
+
+    assert started.status_code == 200
+    assert rejected.status_code == 403
+    assert rejected.json()["error"]["code"] == "FACULTY_NOT_ALLOWED"
+    assert allowed.status_code == 201
+
+
+def test_science_faculty_can_book(api_client: TestClient) -> None:
+    response = api_client.post(
+        "/api/bookings",
+        json=book(1, "2026-10-12", "16:00", 1),
+        headers=as_user("B"),
+    )
+
+    assert response.status_code == 201
+
+
+def test_allowed_faculty_still_gets_quota_and_duplicate_errors(
+    api_client: TestClient,
+) -> None:
+    user_b = as_user("B")
+    first = api_client.post(
+        "/api/bookings", json=book(1, "2026-10-12", "12:00", 2), headers=user_b
+    )
+    same_slot_again = api_client.post(
+        "/api/bookings", json=book(1, "2026-10-12", "12:00", 2), headers=user_b
+    )
+    other_user_same_slot = api_client.post(
+        "/api/bookings", json=book(1, "2026-10-12", "13:00", 1)
+    )
+    over_quota = api_client.post(
+        "/api/bookings", json=book(2, "2026-10-12", "15:00", 1), headers=user_b
+    )
+
+    assert first.status_code == 201
+    assert same_slot_again.status_code == 409
+    assert same_slot_again.json()["error"]["code"] == "SLOT_TAKEN"
+    assert other_user_same_slot.status_code == 409
+    assert other_user_same_slot.json()["error"]["code"] == "SLOT_TAKEN"
+    assert over_quota.status_code == 422
+    assert over_quota.json()["error"]["code"] == "QUOTA_EXCEEDED"
 
 
 def test_booking_rules_and_daily_quota(api_client: TestClient) -> None:

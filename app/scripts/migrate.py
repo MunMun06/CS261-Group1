@@ -6,6 +6,8 @@ from app.models import (
     BookingSlot,
     Checkin,
     Court,
+    StudentFacultyMembership,
+    StudentFacultySession,
     User,
 )
 from app.scripts.seed_data import seed_database

@@ -12,6 +12,12 @@ from app.core.config import checkin_window_minutes, qr_hmac_secret
 from app.core.time import THAI_TIMEZONE
 from app.models import Booking, BookingSlot, Checkin, Court, User
 from app.services.quota_checker import check_booking_rules
+from app.services.student_session import (
+    StudentRegistryUnavailable,
+    StudentSessionRequired,
+    StudentSessionStale,
+    current_student_session,
+)
 
 BOOKING_WINDOW_DAYS = 7
 CANCEL_CUTOFF = timedelta(hours=1)
@@ -25,6 +31,9 @@ RULE_ERRORS = {
     "SLOT_IN_PAST": (422, "This time slot has already started."),
     "QUOTA_EXCEEDED": (422, "You can book at most 2 hours per day."),
 }
+
+# Only students and staff of this faculty can book the courts.
+ALLOWED_FACULTY = "คณะวิทยาศาสตร์และเทคโนโลยี"
 
 # Statuses that can no longer change, with the error returned when they are acted on.
 FINAL_STATUS_ERRORS = {
@@ -178,6 +187,33 @@ def create_booking(
     duration_hours: int,
     now: datetime,
 ) -> Booking:
+    try:
+        faculties, _ = current_student_session(session, user)
+    except StudentSessionRequired as exc:
+        raise error(
+            409,
+            "STUDENT_SESSION_REQUIRED",
+            "กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่เพื่ออัปเดตข้อมูลคณะก่อนจอง",
+        ) from exc
+    except StudentSessionStale as exc:
+        raise error(
+            409,
+            "STUDENT_SESSION_STALE",
+            "ข้อมูลคณะใน Session ไม่เป็นปัจจุบัน กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
+        ) from exc
+    except StudentRegistryUnavailable as exc:
+        raise error(
+            503,
+            "STUDENT_REGISTRY_UNAVAILABLE",
+            "ตรวจสอบข้อมูลคณะไม่ได้ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
+        ) from exc
+
+    if ALLOWED_FACULTY not in faculties:
+        raise error(
+            403,
+            "FACULTY_NOT_ALLOWED",
+            "Only students and staff of the Faculty of Science and Technology can book courts.",
+        )
     if session.get(Court, court_id) is None:
         raise error(404, "COURT_NOT_FOUND", "The requested court does not exist.")
     validate_booking_date(day, now)

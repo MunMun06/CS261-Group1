@@ -17,6 +17,7 @@ from app.schemas.auth import (
     LoginResponse,
 )
 from app.services.auth_service import upsert_tu_user, verify_tu_credentials
+from app.services.staff_auth import authenticate_staff, has_staff_password
 from app.services.booking_service import error
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -135,8 +136,45 @@ def login(
     profile = verify_tu_credentials(
         payload.username, payload.password.get_secret_value()
     )
+    existing = session.scalar(select(User).where(User.student_id == profile.username))
+    # A staff account with its own password must not be signed in to (or have its
+    # profile overwritten) by a TU account that happens to use the same username.
+    if existing is not None and has_staff_password(session, existing):
+        raise error(
+            409,
+            "USE_STAFF_LOGIN",
+            "บัญชีนี้เป็นบัญชีเจ้าหน้าที่ กรุณาเข้าสู่ระบบที่แท็บเจ้าหน้าที่สนาม",
+        )
     user = upsert_tu_user(session, profile)
     session.commit()
+    set_session_cookie(response, user.student_id)
+    return LoginResponse(
+        student_id=user.student_id,
+        name=user.name_th,
+        faculty=user.faculty,
+    )
+
+
+@router.post(
+    "/staff-login",
+    response_model=LoginResponse,
+    summary="Log in with a court staff account",
+    description=(
+        "For court staff accounts that have a password in this system (created with "
+        "`python -m app.scripts.create_staff`), not TU accounts. Starts the same "
+        "session cookie as /api/auth/login. A wrong username or password both return "
+        "401 INVALID_CREDENTIALS."
+    ),
+    responses={401: {"description": "Wrong username or password, or not a staff account."}},
+)
+def staff_login(
+    payload: LoginRequest,
+    response: Response,
+    session: Annotated[Session, Depends(get_db)],
+) -> LoginResponse:
+    user = authenticate_staff(session, payload.username, payload.password.get_secret_value())
+    if user is None:
+        raise error(401, "INVALID_CREDENTIALS", "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
     set_session_cookie(response, user.student_id)
     return LoginResponse(
         student_id=user.student_id,

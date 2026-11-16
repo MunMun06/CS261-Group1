@@ -6,6 +6,7 @@ from app.models import (
     BookingSlot,
     Checkin,
     Court,
+    StaffCredential,
     StudentFacultyMembership,
     StudentFacultySession,
     User,

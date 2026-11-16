@@ -97,20 +97,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         loginButton.disabled = true;
         try {
+            // Court staff log in with a staff account of this system; everyone else with TU.
+            const loginPath = role === 'staff' ? '/api/auth/staff-login' : '/api/auth/login';
             try {
-                await apiRequest('/api/auth/login', {
+                await apiRequest(loginPath, {
                     method: 'POST',
                     body: { username, password },
                 });
             } catch (error) {
-                // No TU API key on this development machine yet: log in as a seeded
-                // test account instead (A, B, C, D, S, S2). The server refuses this in
-                // production or once the key is set, so real TU login takes over then.
-                if (error.code !== 'TU_API_NOT_CONFIGURED') throw error;
-                await apiRequest('/api/auth/dev-login', {
-                    method: 'POST',
-                    body: { username },
-                });
+                // No TU API key on this development machine yet, or a seeded staff account
+                // with no password: log in as a seeded test account instead (A, B, C, D, S,
+                // S2). The server refuses this in production or once the TU key is set
+                // (404), and then the original error is shown.
+                const devFallback = role === 'staff'
+                    ? error.code === 'INVALID_CREDENTIALS'
+                    : error.code === 'TU_API_NOT_CONFIGURED';
+                if (!devFallback) throw error;
+                try {
+                    await apiRequest('/api/auth/dev-login', {
+                        method: 'POST',
+                        body: { username },
+                    });
+                } catch (devError) {
+                    throw devError.status === 404 ? error : devError;
+                }
             }
             window.location.href = await nextPage();
         } catch (error) {

@@ -26,11 +26,18 @@ const pageTextElement = document.getElementById("pagination-page");
 const cardTemplate = document.getElementById("booking-card-template");
 const qrButtonTemplate = document.getElementById("qr-button-template");
 const cancelButtonTemplate = document.getElementById("cancel-button-template");
-const statusIcons = document.getElementById("status-icons-template").content;
 const qrDialog = document.getElementById("qr-dialog");
 const qrDialogCode = document.getElementById("qr-dialog-code");
 const cancelDialog = document.getElementById("cancel-dialog");
 const cancelDialogBooking = document.getElementById("cancel-dialog-booking");
+const cancelDialogCourt = document.getElementById("cancel-dialog-court");
+const qrDialogWindow = document.getElementById("qr-dialog-window");
+const qrDialogImage = document.getElementById("qr-dialog-image");
+const qrDialogStatus = document.getElementById("qr-dialog-status");
+let qrImageUrl = null;
+
+// Check-in opens this long before the start time and closes this long after it.
+const CHECKIN_WINDOW_MINUTES = 15;
 
 let bookingToCancel = null;
 
@@ -82,10 +89,10 @@ function getDetail(booking) {
         return { label: "เช็คอินโดย", value: booking.checkedInBy };
     }
     if (booking.status === "cancelled") {
-        return { label: "", value: "คืนโควตาประจำวันเรียบร้อยแล้ว", note: formatCancelNote(booking) };
+        return { label: "สถานะ", value: "คืนโควตาประจำวันเรียบร้อยแล้ว", note: formatCancelNote(booking) };
     }
     if (booking.status === "no-show") {
-        return { label: "", value: "ช่องเวลากลับมาว่างแล้ว", note: "ไม่ได้เช็คอินภายใน 15 นาทีหลังเวลาเริ่ม" };
+        return { label: "สถานะ", value: "ช่องเวลากลับมาว่างแล้ว", note: "ไม่ได้เช็คอินภายใน 15 นาทีหลังเวลาเริ่ม" };
     }
     return { label: "รหัสจอง", value: `#${booking.id}` };
 }
@@ -93,10 +100,7 @@ function getDetail(booking) {
 function createStatusBadge(status) {
     const badge = document.createElement("span");
     badge.className = `status-badge is-${status}`;
-    badge.append(
-        statusIcons.querySelector(`[data-status="${status}"]`).cloneNode(true),
-        statusLabels[status],
-    );
+    badge.textContent = statusLabels[status];
     return badge;
 }
 
@@ -119,38 +123,83 @@ function createCard(booking) {
     card.querySelector(".status-badge").replaceWith(createStatusBadge(booking.status));
 
     const actions = card.querySelector(".booking-actions");
-    if (booking.status === "pending") {
-        const qrButton = qrButtonTemplate.content.firstElementChild.cloneNode(true);
-        qrButton.addEventListener("click", () => showQrCode(booking));
-        actions.append(qrButton);
-    }
     if (canCancel(booking)) {
         const cancelButton = cancelButtonTemplate.content.firstElementChild.cloneNode(true);
         cancelButton.addEventListener("click", () => askToCancel(booking));
         actions.append(cancelButton);
     }
-    actions.hidden = actions.childElementCount === 0;
+    if (booking.status === "pending") {
+        const qrButton = qrButtonTemplate.content.firstElementChild.cloneNode(true);
+        qrButton.addEventListener("click", () => showQrCode(booking));
+        actions.append(qrButton);
+    }
     return card;
 }
 
-// QR check-in is not in this sprint: the dialog shows the placeholder and the booking code.
+// The QR code PNG from GET /api/bookings/{code}/qr. The server sends it with no-store, so
+// it is fetched each time and shown from memory.
+async function loadQrImage(booking) {
+    qrDialogImage.hidden = true;
+    qrDialogStatus.hidden = false;
+    qrDialogStatus.textContent = "กำลังโหลด QR Code";
+    try {
+        const response = await fetch(`${API_BASE}/api/bookings/${encodeURIComponent(booking.code)}/qr`, {
+            credentials: "include",
+        });
+        if (!response.ok) {
+            const body = await response.json().catch(() => null);
+            throw new Error(apiErrorMessages[body?.error?.code] ?? "โหลด QR Code ไม่สำเร็จ");
+        }
+        if (qrImageUrl) {
+            URL.revokeObjectURL(qrImageUrl);
+        }
+        qrImageUrl = URL.createObjectURL(await response.blob());
+        qrDialogImage.src = qrImageUrl;
+        qrDialogImage.alt = `QR Code ของการจอง ${booking.code}`;
+        qrDialogImage.hidden = false;
+        qrDialogStatus.hidden = true;
+    } catch (error) {
+        qrDialogStatus.textContent = error.message === "Failed to fetch"
+            ? apiErrorMessages.NETWORK_ERROR
+            : error.message;
+    }
+}
+
 function showQrCode(booking) {
+    const start = getStartTime(booking);
+    const clock = (minutes) => new Date(start.getTime() + minutes * 60000)
+        .toTimeString().slice(0, 5);
     qrDialogCode.textContent = `#${booking.id}`;
+    qrDialogWindow.textContent =
+        `เช็คอินได้ ${clock(-CHECKIN_WINDOW_MINUTES)} – ${clock(CHECKIN_WINDOW_MINUTES)}`;
     qrDialog.showModal();
+    loadQrImage(booking);
 }
 
 function askToCancel(booking) {
     bookingToCancel = booking;
-    cancelDialogBooking.textContent =
-        `${booking.court} · ${formatDate(booking.date)} · ${formatTime(booking)}`;
+    cancelDialogCourt.textContent = booking.court;
+    cancelDialogBooking.textContent = `${formatDate(booking.date)} · ${formatTime(booking)}`;
     cancelDialog.returnValue = "";
     cancelDialog.showModal();
 }
 
-// TODO: cancelling is not in this sprint. When it is, call
-// POST /api/bookings/{code}/cancel here (the API already has it), then loadHistory(currentPage).
-cancelDialog.addEventListener("close", () => {
+// "ยืนยันยกเลิก" closes the dialog with returnValue "confirm"; "ไม่ยกเลิก" or Esc keeps the booking.
+cancelDialog.addEventListener("close", async () => {
+    const booking = bookingToCancel;
     bookingToCancel = null;
+    if (cancelDialog.returnValue !== "confirm" || booking === null) {
+        return;
+    }
+    try {
+        await apiRequest(`/api/bookings/${encodeURIComponent(booking.code)}/cancel`, {
+            method: "POST",
+        });
+    } catch (error) {
+        window.alert(error.message);
+    }
+    // Reload either way: the booking may have changed, e.g. expired, since the page loaded.
+    await loadHistory(currentPage);
 });
 
 // Page numbers to show: first, last, and the neighbours of the current page.
@@ -206,7 +255,14 @@ function createArrow(direction) {
 
 function renderPagination(firstIndex, lastIndex) {
     const rangeText = `${firstIndex}–${lastIndex}`;
-    summaryElement.textContent = `แสดง ${rangeText} จาก ${totalBookings} รายการ`;
+    // Phones show only the count, as in the mobile design.
+    const wide = document.createElement("span");
+    wide.className = "summary-wide";
+    wide.textContent = `แสดง ${rangeText} จาก ${totalBookings} รายการ`;
+    const narrow = document.createElement("span");
+    narrow.className = "summary-narrow";
+    narrow.textContent = `${totalBookings} รายการ`;
+    summaryElement.replaceChildren(wide, narrow);
 
     const range = document.createElement("strong");
     range.textContent = rangeText;

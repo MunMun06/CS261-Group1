@@ -10,8 +10,21 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api import bookings_router, courts_router, history_router
-from app.core.config import cors_origins, qr_hmac_secret, seed_enabled
+from app.api import (
+    auth_router,
+    bookings_router,
+    courts_router,
+    history_router,
+    qr_router,
+    sessions_router,
+)
+from app.core.config import (
+    cors_origins,
+    qr_hmac_secret,
+    seed_enabled,
+    session_secret,
+    tu_api_timeout_seconds,
+)
 from app.jobs import sweep_no_shows
 from app.scripts.migrate import migrate_database
 from app.scripts.seed_data import seed_database
@@ -35,8 +48,14 @@ async def run_no_show_scheduler() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    try:
+        tu_api_timeout_seconds()
+    except ValueError as exc:
+        raise RuntimeError(str(exc)) from exc
     if not qr_hmac_secret():
         raise RuntimeError("QR_HMAC_SECRET must be configured before starting the API.")
+    if not session_secret():
+        raise RuntimeError("SESSION_SECRET must be configured before starting the API.")
     migrate_database()
     if seed_enabled():
         seed_database()
@@ -65,9 +84,13 @@ app.add_middleware(
 app.include_router(courts_router)
 app.include_router(bookings_router)
 app.include_router(history_router)
+app.include_router(auth_router)
+app.include_router(qr_router)
+app.include_router(sessions_router)
 
-# The API also serves the pages, e.g. /html/index.html, so they reach the API from
-# the same origin. The Dockerfile copies these folders into the image.
+# When run with uvicorn on your own machine the API also serves the pages, e.g.
+# /html/index.html. In Docker the frontend container serves them instead, since the
+# backend image has no page folders, so nothing is mounted there.
 for folder in FRONTEND_FOLDERS:
     if (PROJECT_ROOT / folder).is_dir():
         app.mount(f"/{folder}", StaticFiles(directory=PROJECT_ROOT / folder), name=folder)
@@ -93,9 +116,9 @@ async def http_error_handler(_: Request, exc: HTTPException) -> JSONResponse:
 
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(
-    _: Request, exc: RequestValidationError
+    _: Request, _exc: RequestValidationError
 ) -> JSONResponse:
-    logger.info("Rejected invalid request: %s", exc.errors())
+    logger.info("Rejected invalid request (%s)", type(_exc).__name__)
     return error_response(400, "INVALID_INPUT", "The request parameters are invalid.")
 
 

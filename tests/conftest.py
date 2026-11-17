@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import main
-from app.api import bookings, courts, history
+from app.api import bookings, courts, history, qr
 from app.core.database import Base, get_db
+from app.core.session import SESSION_COOKIE_NAME, create_session_token
 from app.scripts.seed_data import seed_database
 
 TZ = ZoneInfo("Asia/Bangkok")
@@ -20,9 +21,15 @@ TZ = ZoneInfo("Asia/Bangkok")
 def current_time(monkeypatch: pytest.MonkeyPatch) -> list[datetime]:
     now = [datetime(2026, 10, 10, 10, 0, tzinfo=TZ)]
     monkeypatch.setenv("QR_HMAC_SECRET", "test-only-secret")
+    monkeypatch.setenv("SESSION_SECRET", "test-only-session-secret")
+    monkeypatch.setenv("TU_API_APPLICATION_KEY", "test-application-key")
+    monkeypatch.setenv("TU_API_TIMEOUT_SECONDS", "10")
+    monkeypatch.setenv("STUDENT_REGISTRY_PROVIDER", "mock")
+    monkeypatch.setenv("STUDENT_REGISTRY_MOCK_DATA", "{}")
     monkeypatch.setattr(courts, "now_thailand", lambda: now[0])
     monkeypatch.setattr(bookings, "now_thailand", lambda: now[0])
     monkeypatch.setattr(history, "now_thailand", lambda: now[0])
+    monkeypatch.setattr(qr, "now_thailand", lambda: now[0])
     return now
 
 
@@ -57,7 +64,15 @@ def api_client(
 
     main.app.dependency_overrides[get_db] = override_get_db
     client = TestClient(main.app)
+    # Requests are made as the seeded user "A" unless a test sends another session.
+    client.cookies.set(SESSION_COOKIE_NAME, create_session_token("A"))
     try:
+        for student_id in ("A", "B"):
+            response = client.post(
+                "/api/session/start",
+                headers={"Cookie": f"{SESSION_COOKIE_NAME}={create_session_token(student_id)}"},
+            )
+            assert response.status_code == 200
         yield client
     finally:
         client.close()

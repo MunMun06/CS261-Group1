@@ -1,0 +1,383 @@
+/* Login page, from the "เข้าสู่ระบบ" design: a dark panel with the brand and headline at
+   the left, the login card on the right. The panels stack on narrow screens. */
+
+:root {
+    --accent: #ea580c;
+    --accent-strong: #c2410c;
+    --ink: #0f172a;
+    --ink-heading: #1b2130;
+    --text: #334155;
+    --text-muted: #64748b;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    margin: 0;
+    background: #f8fafc;
+    color: var(--ink);
+    font-family: "Prompt", system-ui, sans-serif;
+}
+
+a {
+    color: var(--accent-strong);
+    text-decoration: none;
+}
+
+a:hover {
+    color: #9a3412;
+}
+
+button,
+input {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #fdba74;
+    outline-offset: 2px;
+}
+
+.login-container {
+    display: flex;
+    min-height: 100vh;
+    flex-wrap: wrap;
+}
+
+/* Left: dark panel */
+
+.left-panel {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex: 1 1 480px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    overflow: hidden;
+    padding: clamp(24px, 4vw, 56px);
+    background: var(--ink-heading);
+    color: #cbd5e1;
+}
+
+.court-lines {
+    position: absolute;
+    right: -120px;
+    bottom: -60px;
+    stroke: #fff;
+    stroke-opacity: 0.07;
+    stroke-width: 3;
+}
+
+.brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-mark {
+    display: flex;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 14px;
+    background: #111827;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+}
+
+.brand-name {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.hero-text {
+    position: relative;
+    display: flex;
+    max-width: 520px;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.hero-text h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(28px, 3.2vw, 44px);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.text-orange {
+    color: #fb923c;
+}
+
+.footer-text {
+    position: relative;
+    margin: 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Right: login card */
+
+.right-panel {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 420px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: clamp(24px, 4vw, 56px) 16px;
+}
+
+.login-card {
+    display: flex;
+    width: 100%;
+    max-width: 440px;
+    flex-direction: column;
+    gap: 22px;
+    padding: clamp(22px, 3vw, 36px);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgb(15 23 42 / 6%);
+}
+
+.card-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-title {
+    margin: 0;
+    color: var(--ink-heading);
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: #f1f5f9;
+}
+
+.tab {
+    min-height: 44px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tab.active {
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 12%);
+    color: var(--accent-strong);
+}
+
+#loginForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.alert svg {
+    flex: 0 0 auto;
+    color: #dc2626;
+}
+
+.alert strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.forgot-link {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    height: 52px;
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.form-control:focus {
+    border-color: #f97316;
+    outline: 3px solid #fed7aa;
+    outline-offset: 0;
+}
+
+.form-control.has-error {
+    border-color: #dc2626;
+}
+
+.field-error {
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.password-input {
+    position: relative;
+}
+
+.password-input .form-control {
+    padding-right: 52px;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.toggle-password.is-shown {
+    color: var(--accent-strong);
+}
+
+.checkbox-group {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.checkbox-group input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.btn-submit {
+    display: flex;
+    min-height: 56px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--accent);
+    box-shadow: 0 8px 20px rgb(234 88 12 / 25%);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: var(--accent-strong);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.warning-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.warning-box svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
+}
+
+.system-footer {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+}

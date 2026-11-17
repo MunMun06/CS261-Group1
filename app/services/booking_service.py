@@ -12,6 +12,12 @@ from app.core.config import checkin_window_minutes, qr_hmac_secret
 from app.core.time import THAI_TIMEZONE
 from app.models import Booking, BookingSlot, Checkin, Court, User
 from app.services.quota_checker import check_booking_rules
+from app.services.student_session import (
+    StudentRegistryUnavailable,
+    StudentSessionRequired,
+    StudentSessionStale,
+    current_student_session,
+)
 
 BOOKING_WINDOW_DAYS = 7
 CANCEL_CUTOFF = timedelta(hours=1)
@@ -25,6 +31,9 @@ RULE_ERRORS = {
     "SLOT_IN_PAST": (422, "This time slot has already started."),
     "QUOTA_EXCEEDED": (422, "You can book at most 2 hours per day."),
 }
+
+# Only students and staff of this faculty can book the courts.
+ALLOWED_FACULTY = "คณะวิทยาศาสตร์และเทคโนโลยี"
 
 # Statuses that can no longer change, with the error returned when they are acted on.
 FINAL_STATUS_ERRORS = {
@@ -142,6 +151,25 @@ def booking_to_dict(booking: Booking, include_qr: bool = False) -> dict[str, obj
     return result
 
 
+def staff_booking_to_dict(booking: Booking) -> dict[str, object]:
+    """What the staff check-in page shows about a booking, with who booked it."""
+    result: dict[str, object] = {
+        "id": booking.code,
+        "code": booking.code,
+        "name": booking.user.name_th,
+        "studentId": booking.user.student_id,
+        "court": booking.court.name,
+        "date": booking.booking_date.isoformat(),
+        "start": booking.start_time.strftime("%H:%M"),
+        "end": booking.end_time.strftime("%H:%M"),
+        "status": booking.status,
+    }
+    if booking.checkin is not None:
+        result["checkedInBy"] = f"สแกนประตู {booking.checkin.gate}"
+        result["checkedInAt"] = booking.checkin.checked_in_at.isoformat(timespec="minutes")
+    return result
+
+
 def get_booking_by_code(session: Session, code: str) -> Booking:
     booking = session.scalar(select(Booking).where(Booking.code == code))
     if booking is None:
@@ -159,6 +187,33 @@ def create_booking(
     duration_hours: int,
     now: datetime,
 ) -> Booking:
+    try:
+        faculties, _ = current_student_session(session, user)
+    except StudentSessionRequired as exc:
+        raise error(
+            409,
+            "STUDENT_SESSION_REQUIRED",
+            "กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่เพื่ออัปเดตข้อมูลคณะก่อนจอง",
+        ) from exc
+    except StudentSessionStale as exc:
+        raise error(
+            409,
+            "STUDENT_SESSION_STALE",
+            "ข้อมูลคณะใน Session ไม่เป็นปัจจุบัน กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
+        ) from exc
+    except StudentRegistryUnavailable as exc:
+        raise error(
+            503,
+            "STUDENT_REGISTRY_UNAVAILABLE",
+            "ตรวจสอบข้อมูลคณะไม่ได้ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
+        ) from exc
+
+    if ALLOWED_FACULTY not in faculties:
+        raise error(
+            403,
+            "FACULTY_NOT_ALLOWED",
+            "Only students and staff of the Faculty of Science and Technology can book courts.",
+        )
     if session.get(Court, court_id) is None:
         raise error(404, "COURT_NOT_FOUND", "The requested court does not exist.")
     validate_booking_date(day, now)
@@ -240,6 +295,7 @@ def checkin_booking(
     *,
     gate: str,
     qr_token: str | None,
+    staff: User,
     now: datetime,
 ) -> Booking:
     booking = get_booking_by_code(session, code)
@@ -266,10 +322,7 @@ def checkin_booking(
             "CHECKIN_TOO_LATE",
             f"Check-in closed {minutes} minutes after the booking started.",
         )
-    # Staff login is not built yet, so check-ins are recorded under the first staff user.
-    staff = session.scalar(select(User).where(User.role == "staff").order_by(User.id))
-    if staff is None:
-        raise error(503, "NO_STAFF_USER", "No staff user exists to record the check-in.")
+    # Recorded under the staff member signed in to this session.
     session.add(
         Checkin(
             booking_id=booking.id,

@@ -12,14 +12,18 @@
     <link rel="stylesheet" href="../css/check-in-style.css">
     <script src="../js/api.js" defer></script>
     <script src="../js/menu.js" defer></script>
+    <script src="../js/check-in-store.js" defer></script>
     <script src="../js/check-in-script.js" defer></script>
 </head>
 <body>
     <header class="site-header">
         <div class="site-header-inner">
             <a class="brand" href="index.html" aria-label="TU Basket Booking - หน้าแรก">
-                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="40" height="40">
-                <span class="brand-name">TU BASKET BOOKING</span>
+                <img class="brand-mark" src="../assets/images/favicon.svg" alt="" width="52" height="52">
+                <span class="brand-copy">
+                    <span class="brand-name">TU BASKET BOOKING</span>
+                    <span class="brand-subtitle">คณะวิทยาศาสตร์และเทคโนโลยี · ศูนย์รังสิต</span>
+                </span>
             </a>
 
 
@@ -67,6 +71,19 @@
 
             <nav class="drawer-nav" aria-label="เมนูหลัก">
                 <p class="drawer-nav-heading">เมนูหลัก</p>
+                <a class="drawer-link" href="check-in-scan.html">
+                    <span class="drawer-link-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    สแกน QR เช็คอิน
+                    <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M6 3.33333L10.6667 8L6 12.6667" stroke="currentColor" stroke-width="1.33"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
                 <a class="drawer-link" href="index.html">
                     <span class="drawer-link-icon">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -121,68 +138,46 @@
                     </svg>
                     TU Sports Complex @ Rangsit
                 </span>
-                <span class="drawer-footer-version">TU Court Reservation v1.0 • Thammasat University</span>
+                <span class="drawer-footer-version">TU Basket Booking v1.0 • Thammasat University</span>
             </footer>
         </div>
     </dialog>
-    <main class="container">
-    <div class="page-title">
-        <span class="subtitle text-danger">สแกน QR Code แล้ว</span>
-        <h1>ยืนยันการเช็คอิน</h1>
-    </div>
-
-    <div class="grid-layout">
-        <!-- Left: Booking Card (Badge Danger) -->
-        <section class="card booking-card">
-        <div class="card-header">
-            <div class="booking-id-group">
-            <span class="label">รหัสจอง</span>
-            <h2 class="booking-id" data-field="code">#TU-69101401</h2>
+    <main class="checkin-page page-container">
+        <div class="result">
+            <div class="result-heading">
+                <span class="result-icon is-danger" aria-hidden="true">
+                    <svg width="40" height="40" viewBox="0 0 12 12" fill="none"><path d="M9 3 3 9M3 3l6 6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
+                </span>
+                <h1 class="text-danger">เช็คอินไม่ได้</h1>
+                <p data-field="failReason">การจองนี้ถูกยกเลิกแล้ว</p>
             </div>
-            <span class="badge badge-danger" data-field="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg> ยกเลิกแล้ว</span>
+            <section class="card result-card" aria-label="ข้อมูลการจอง">
+                <div class="code-row is-center">
+                    <p class="booking-code is-muted" data-field="code">—</p>
+                    <span class="badge badge-muted" data-field="status">ยกเลิกแล้ว</span>
+                </div>
+                <dl class="info-grid">
+                    <div><dt>สนาม</dt><dd class="is-muted" data-field="court">—</dd></div>
+                    <div><dt>วันที่</dt><dd class="is-muted" data-field="date">—</dd></div>
+                    <div><dt>เวลา</dt><dd class="is-muted" data-field="time">—</dd></div>
+                </dl>
+                <p class="fail-detail"><span data-field="failDetail">คืนโควตาประจำวันเรียบร้อยแล้ว</span></p>
+            </section>
+            <button type="button" class="btn btn-dark is-wide" id="btnScanNext">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+                สแกนรายการถัดไป
+            </button>
         </div>
-        <!-- User info & info grid -->
-        <div class="user-info-box">
-            <div class="avatar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg></div>
-            <div class="user-details">
-            <p class="user-name" data-field="name">[ชื่อ-นามสกุลผู้จอง]</p>
-            <p class="user-id" data-field="studentId">รหัสนักศึกษา [รหัสนักศึกษา]</p>
-            </div>
-        </div>
-
-        <div class="info-grid">
-            <div class="info-item">
-            <span class="info-label">สนาม</span>
-            <span class="info-value" data-field="court">สนามบาสเกตบอล สนามที่ 1</span>
-            </div>
-            <div class="info-item">
-            <span class="info-label">วันที่</span>
-            <span class="info-value" data-field="date">วันศุกร์ 16 ต.ค. 2569</span>
-            </div>
-            <div class="info-item">
-            <span class="info-label">เวลา</span>
-            <span class="info-value" data-field="time">18:00 – 19:00 (1 ชม.)</span>
-            </div>
-            <div class="info-item full-width">
-            <span class="info-label">สถานที่</span>
-            <span class="info-value">คณะวิทยาศาสตร์และเทคโนโลยี ศูนย์รังสิต</span>
-            </div>
-        </div>
-        </section>
-
-        <!-- Right: Failed Result Card -->
-        <section class="card result-card align-center">
-        <div class="status-icon icon-danger"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></div>
-        <h2 class="result-title text-danger">เช็คอินไม่ได้</h2>
-        <p class="result-subtitle" data-field="failReason">การจองนี้ถูกยกเลิกแล้ว</p>
-        <div class="cancel-reason-box">
-            <span data-field="failDetail">คืนโควตาประจำวันเรียบร้อยแล้ว</span>
-        </div>
-        <button type="button" class="btn btn-dark" id="btnScanNext">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" /></svg> สแกนรายการถัดไป
-        </button>
-        </section>
-    </div>
     </main>
+
+    <footer class="site-footer site-footer-compact">
+        <div class="site-footer-inner page-container">
+            <span class="footer-place">
+                <img src="../assets/images/favicon.svg" alt="" width="40" height="40">
+                TU Sports Complex @ Rangsit
+            </span>
+            <span class="footer-version">TU Basket Booking v1.0 • Thammasat University</span>
+        </div>
+    </footer>
 </body>
 </html>
